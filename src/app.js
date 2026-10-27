@@ -77,6 +77,23 @@
   const PAUSE = { sent: 160, line: 420, head: 950, sep: 1400, para: { short: 300, mid: 650, long: 1100 } };
   const pauseMs = (kind) => Math.round((kind === 'para' ? (PAUSE.para[S.set.pause] || 650) : (PAUSE[kind] || 200)) / clamp(S.set.rate, 0.5, 2));
 
+  // 16 bites, egycsatornás WAV a mondat hangjából és a mögé tett csendből
+  function wavBlob(pcm, sr, trailMs) {
+    const n = pcm.length + Math.round((sr * (trailMs || 0)) / 1000);
+    const buf = new ArrayBuffer(44 + n * 2);
+    const v = new DataView(buf);
+    const tag = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    tag(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); tag(8, 'WAVE');
+    tag(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    tag(36, 'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0, o = 44; i < pcm.length; i++, o += 2) {
+      const x = pcm[i] < -1 ? -1 : pcm[i] > 1 ? 1 : pcm[i];
+      v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true);
+    }
+    return new Blob([buf], { type: 'audio/wav' });
+  }
+
   // ── Beépített neurális hang (Imre): a böngészőben fut, egy Web Workerben ──
   const Neural = {
     manifest: window.MESELO_TTS || null,
@@ -87,41 +104,39 @@
     total: 0,
     error: null,
     readyPromise: null,
-    ctx: null,
-    src: null,
+    audio: null, // minden mondat ugyanazon a médiaelemen szól: így zárolt képernyővel is megy, és nem torzul
+    url: '',
+    cur: 0,
+    seq: 0,
+    unlocked: false,
     nextId: 1,
     jobs: new Map(),
     cache: new Map(),
     get available() {
-      return !!(this.manifest && typeof Worker === 'function' && typeof WebAssembly === 'object' &&
-        (window.AudioContext || window.webkitAudioContext));
+      return !!(this.manifest && typeof Worker === 'function' && typeof WebAssembly === 'object' && typeof Audio === 'function');
     },
     get totalMB() {
       return this.manifest ? Math.round(this.manifest.files.reduce((n, f) => n + f.size, 0) / 1048576) : 0;
     },
-    ensureCtx() {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      if (!this.ctx) { try { this.ctx = new AC(); } catch (e) { return null; } }
-      if (this.ctx.state !== 'running') { try { this.ctx.resume().catch(() => {}); } catch (e) { /* */ } }
-      // a hang egy médiaelemen át szól: így a telefon zárolt képernyővel is játssza, és megjelennek a vezérlők
-      if (!this.el && this.ctx.createMediaStreamDestination && typeof Audio === 'function') {
-        try {
-          this.dest = this.ctx.createMediaStreamDestination();
-          this.el = new Audio();
-          this.el.srcObject = this.dest.stream;
-        } catch (e) { this.el = null; this.dest = null; }
+    el() {
+      if (!this.audio) {
+        this.audio = new Audio();
+        this.audio.preload = 'auto';
+        this.audio.setAttribute('playsinline', '');
       }
-      if (this.el && this.el.paused) {
-        try {
-          const p = this.el.play();
-          if (p && p.then) p.then(() => { this.elOk = true; }, () => { this.elOk = false; });
-        } catch (e) { this.elOk = false; }
-      }
-      return this.ctx;
+      return this.audio;
     },
-    out() { return this.elOk && this.dest ? this.dest : this.ctx.destination; },
-    idle() { if (this.el && !this.el.paused) { try { this.el.pause(); } catch (e) { /* */ } } },
+    // a kattintáson belül egy rövid csenddel engedélyezzük a lejátszást (a későbbi mondatokhoz már nem kell kattintás)
+    unlock() {
+      if (this.unlocked || this.cur) return;
+      const a = this.el();
+      try {
+        this.silent = this.silent || URL.createObjectURL(wavBlob(new Float32Array(2205), 22050, 0));
+        a.src = this.silent;
+        const p = a.play();
+        if (p && p.then) p.then(() => { this.unlocked = true; }, () => {});
+      } catch (e) { /* */ }
+    },
     start() {
       if (this.state === 'ready') return Promise.resolve();
       if (this.state === 'failed') return Promise.reject(this.error);
@@ -160,12 +175,8 @@
             if (!j) return;
             this.jobs.delete(m.id);
             if (m.type === 'error') { j.reject({ code: 'synth', message: m.message }); return; }
-            const ctx = this.ensureCtx();
-            if (!ctx) { j.reject({ code: 'audio' }); return; }
             if (window.__meseloStats) window.__meseloStats.push({ ms: m.ms, sec: m.pcm.length / m.sampleRate });
-            const buf = ctx.createBuffer(1, m.pcm.length, m.sampleRate);
-            buf.getChannelData(0).set(m.pcm);
-            j.resolve({ buffer: buf, ms: m.ms });
+            j.resolve({ pcm: m.pcm, sampleRate: m.sampleRate, sec: m.pcm.length / m.sampleRate, ms: m.ms });
           }
         };
         w.postMessage({ type: 'init', manifest: this.manifest });
@@ -199,20 +210,38 @@
       this.worker.postMessage({ type: 'flush', keep: keepIds });
     },
     clearCache() { this.flush([]); this.cache.clear(); },
-    play(buffer, onend) {
+    // egy mondat a mögé tett szünettel együtt egy WAV-fájlként szól
+    play(item, trailMs, onend, onfail) {
       this.stopSource();
-      const ctx = this.ensureCtx();
-      const src = ctx.createBufferSource();
-      src.buffer = buffer;
-      src.connect(this.out());
-      src.onended = () => { if (this.src === src) { this.src = null; onend(); } };
-      this.src = src;
-      src.start();
+      const a = this.el();
+      const id = ++this.seq;
+      this.cur = id;
+      this.url = URL.createObjectURL(wavBlob(item.pcm, item.sampleRate, trailMs));
+      const done = (ok, err) => {
+        if (this.cur !== id) return;
+        this.cur = 0;
+        this.release();
+        if (ok) onend(); else if (onfail) onfail(err);
+      };
+      a.onended = () => done(true);
+      a.onerror = () => done(false, a.error);
+      a.src = this.url;
+      try {
+        const p = a.play();
+        if (p && p.catch) p.catch((e) => { if (!(e && e.name === 'AbortError')) done(false, e); });
+      } catch (e) { done(false, e); }
     },
     stopSource() {
-      const s = this.src;
-      this.src = null;
-      if (s) { try { s.onended = null; s.stop(); s.disconnect(); } catch (e) { /* */ } }
+      this.cur = 0;
+      const a = this.audio;
+      if (a) { a.onended = null; a.onerror = null; try { a.pause(); } catch (e) { /* */ } }
+      this.release();
+    },
+    release() { if (this.url) { URL.revokeObjectURL(this.url); this.url = ''; } },
+    pauseNow() { if (this.audio) { try { this.audio.pause(); } catch (e) { /* */ } } },
+    resumeNow() {
+      if (!this.audio) return;
+      try { const p = this.audio.play(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* */ }
     },
     async isCached() {
       if (!this.manifest || typeof caches === 'undefined') return false;
@@ -577,14 +606,14 @@
   function play() {
     if (!canPlay()) { toast('Ez a böngésző nem tud felolvasni. Próbáld meg Microsoft Edge-ben vagy Chrome-ban.', 'error'); return; }
     if (S.playing || !S.segs.length) return;
-    if (useNeural()) Neural.ensureCtx(); // a hangot a kattintáson belül kell engedélyezni (iPhone)
+    if (useNeural()) Neural.unlock(); // a hangot a kattintáson belül kell engedélyezni (iPhone)
     const p = S.pausedAt;
-    if (p && p.token === S.token && p.ch === S.ch && p.seg === S.seg && Neural.src) {
+    if (p && p.token === S.token && p.ch === S.ch && p.seg === S.seg && Neural.cur) {
       // a beépített hang ott folytatja, ahol megállt, a mondat közepén is
       S.pausedAt = null;
       S.playing = true;
+      Neural.resumeNow();
       setPlayUi();
-      wake(true);
       return;
     }
     S.pausedAt = null;
@@ -599,16 +628,14 @@
     S.token++;
     clearTimers();
     cancelSpeech();
-    Neural.idle();
     setPlayUi();
     wake(false);
   }
   function pause() {
-    if (S.playing && Neural.src && Neural.ctx && useNeural()) {
+    if (S.playing && Neural.cur && useNeural()) {
       S.playing = false;
       S.pausedAt = { token: S.token, ch: S.ch, seg: S.seg };
-      try { Neural.ctx.suspend(); } catch (e) { /* */ }
-      Neural.idle();
+      Neural.pauseNow();
       setPlayUi();
       wake(false);
       savePos();
@@ -632,7 +659,7 @@
     learnFrom(sg.text.length, ((now() - started) / 1000) * S.set.rate);
   }
 
-  function finished(sg, my) {
+  function finished(sg, my, delay) {
     clearTimeout(S.watchdog);
     clearInterval(S.keep);
     if (S.sleep.mode === 'time' && Date.now() >= S.sleep.until) {
@@ -643,7 +670,9 @@
       toast('Az elalvási időzítő leállította a felolvasást.');
       return;
     }
-    S.timer = setTimeout(() => { if (my === S.token) advance(); }, pauseMs(sg.pause));
+    const wait = delay === undefined ? pauseMs(sg.pause) : delay;
+    if (wait <= 0) { advance(); return; }
+    S.timer = setTimeout(() => { if (my === S.token) advance(); }, wait);
   }
 
   function arm(text, sg, my) {
@@ -763,10 +792,14 @@
     S.errors = 0;
     setPlayUi();
     if (!S.playing) return;
-    Neural.play(item.buffer, () => {
+    Neural.play(item, pauseMs(sg.pause), () => {
       if (my !== S.token) return;
-      learnFrom(sg.text.length, item.buffer.duration * S.set.rate);
-      finished(sg, my);
+      learnFrom(sg.text.length, item.sec * S.set.rate);
+      finished(sg, my, 0);
+    }, () => {
+      if (my !== S.token) return;
+      toast('A lejátszás megakadt, továbblépek a következő mondatra.', 'error');
+      finished(sg, my, 0);
     });
     upcomingTexts(3).forEach((t) => Neural.get(t).catch(() => {}));
   }
@@ -822,7 +855,7 @@
       S.playing = true;
       setPlayUi();
       wake(true);
-      if (useNeural()) { Neural.ensureCtx(); speakCurrent(); return; }
+      if (useNeural()) { Neural.unlock(); speakCurrent(); return; }
       // iOS-en az első felolvasásnak a kattintáson belül kell indulnia; különben hagyunk időt a leállításnak
       if (busy) S.timer = setTimeout(() => { if (S.playing) speakCurrent(); }, 140);
       else speakCurrent();
@@ -1068,12 +1101,12 @@
     cancelSpeech();
     if (useNeural()) {
       const my = S.token;
-      Neural.ensureCtx();
+      Neural.unlock();
       const btn = $('#tryBtn');
       btn.disabled = true;
       Neural.start()
         .then(() => Neural.get(text))
-        .then((item) => { if (my === S.token) Neural.play(item.buffer, () => { if (!S.playing) Neural.idle(); }); })
+        .then((item) => { if (my === S.token) Neural.play(item, 0, () => {}); })
         .catch(() => { if (Neural.state === 'failed') neuralFailed(); })
         .finally(() => { btn.disabled = false; });
       return;

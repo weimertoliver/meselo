@@ -1,5 +1,5 @@
 /* Mesélő · service worker: az app internet nélkül is induljon */
-const VERSION = '2e59bfb34719';
+const VERSION = '9cae034b3389';
 const APP_CACHE = `meselo-app-${VERSION}`;
 const FONT_CACHE = 'meselo-fonts-v1';
 const SHELL = ["./","manifest.webmanifest","icons/favicon.svg","icons/icon-192.png","icons/icon-512.png","tts/worker.mjs","tts/ort.wasm.min.mjs","tts/ort-wasm-simd-threaded.mjs","tts/piper_phonemize.mjs","tts/imre/config.json"];

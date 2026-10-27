@@ -159,6 +159,7 @@ function sentences(o) {
 
 // Az újabb espeak-ng (amivel a hangot tanították) „ʲ” siklóhangot tesz az i és a következő magánhangzó közé
 const GLIDE = /i(?=[aɑeɛioøuy])/g;
+const TARGET_RMS = 0.12; // kb. −18 dBFS
 
 function toIds(ph) {
   const m = voiceCfg.phoneme_id_map;
@@ -190,10 +191,16 @@ async function synth(text, lengthScale, noise) {
     };
     const res = await session.run(feeds);
     const a = Float32Array.from(res.output.data);
-    // mondatonkénti csúcsnormálás, ahogy a Piper is csinálja
-    let peak = 0;
-    for (let i = 0; i < a.length; i++) { const v = Math.abs(a[i]); if (v > peak) peak = v; }
-    const g = peak > 1e-6 ? 0.9 / peak : 0;
+    // egyforma hangerő minden mondatnál: a beszédrészek átlagos szintjére igazítunk, a csúcsokat korlátozzuk
+    let peak = 0, sum = 0, cnt = 0;
+    for (let i = 0; i < a.length; i++) {
+      const v = Math.abs(a[i]);
+      if (v > peak) peak = v;
+      if (v > 0.02) { sum += a[i] * a[i]; cnt++; }
+    }
+    const rms = cnt ? Math.sqrt(sum / cnt) : 0;
+    let g = rms > 1e-4 ? TARGET_RMS / rms : 0;
+    if (peak * g > 0.95) g = 0.95 / peak;
     for (let i = 0; i < a.length; i++) a[i] *= g;
     parts.push(a);
   }
