@@ -1,0 +1,7 @@
+# a hangmodell a docs/tts/imre/ alatt darabokban van; az egészet a scripts/fetch-model.sh tölti le
+vendor/imre/*.onnx
+dist/
+tests/out/
+tests/shots/
+node_modules/
+__pycache__/

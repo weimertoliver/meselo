@@ -1,0 +1,3350 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="EPUB-könyvek felolvasása természetes magyar hangon, telefonon és számítógépen is.">
+<meta name="theme-color" content="#f1f2ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11151d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Mesélő felolvasó</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&display=swap">
+<style>
+:root {
+  /* Layout: egyetlen könyvoldal-hasáb középen, fent vékony fejléc, alul dokkolt lejátszó;
+     a mondatot szövegkiemelő-csík követi, a kezelőelemek királykék tintával */
+  --paper: #f1f2ec;
+  --surface: #fbfbf7;
+  --surface-2: #e8eae2;
+  --ink: #1a2030;
+  --ink-2: #475064;
+  --ink-3: #737b8e;
+  --rule: #d4d7ce;
+  --accent: #2341b0;
+  --accent-strong: #19318a;
+  --on-accent: #ffffff;
+  --accent-wash: #e0e5f6;
+  --mark: rgb(255 212 60 / .8);
+  --mark-hover: rgb(255 212 60 / .3);
+  --mark-ink: #1a2030;
+  --warn-ink: #7a4e00;
+  --warn-wash: #f8ecc9;
+  --danger: #b3261e;
+  --scrim: rgb(14 18 30 / .38);
+  --shadow: 0 1px 2px rgb(16 22 38 / .06), 0 12px 32px rgb(16 22 38 / .12);
+  --shadow-sm: 0 1px 2px rgb(16 22 38 / .1);
+  --lift: 0 -10px 30px rgb(16 22 38 / .06);
+  --glow: 0 6px 18px rgb(35 65 176 / .3);
+  --font-read: "Literata", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --read-size: 1.1875rem;
+  --read-scale: 1;
+  --player-h: 170px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11151d;
+    --surface: #181d28;
+    --surface-2: #232937;
+    --ink: #e6e8ee;
+    --ink-2: #b4bac8;
+    --ink-3: #8b92a3;
+    --rule: #2b3141;
+    --accent: #9db1ff;
+    --accent-strong: #c2cfff;
+    --on-accent: #0d1326;
+    --accent-wash: #222c4e;
+    --mark: rgb(255 196 60 / .27);
+    --mark-hover: rgb(255 196 60 / .12);
+    --mark-ink: #fff3d3;
+    --warn-ink: #f2c66a;
+    --warn-wash: #3a2f15;
+    --danger: #ff8d7d;
+    --scrim: rgb(0 0 0 / .56);
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 14px 36px rgb(0 0 0 / .5);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / .5);
+    --lift: 0 -10px 30px rgb(0 0 0 / .35);
+    --glow: 0 6px 18px rgb(0 0 0 / .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11151d;
+  --surface: #181d28;
+  --surface-2: #232937;
+  --ink: #e6e8ee;
+  --ink-2: #b4bac8;
+  --ink-3: #8b92a3;
+  --rule: #2b3141;
+  --accent: #9db1ff;
+  --accent-strong: #c2cfff;
+  --on-accent: #0d1326;
+  --accent-wash: #222c4e;
+  --mark: rgb(255 196 60 / .27);
+  --mark-hover: rgb(255 196 60 / .12);
+  --mark-ink: #fff3d3;
+  --warn-ink: #f2c66a;
+  --warn-wash: #3a2f15;
+  --danger: #ff8d7d;
+  --scrim: rgb(0 0 0 / .56);
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 14px 36px rgb(0 0 0 / .5);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / .5);
+  --lift: 0 -10px 30px rgb(0 0 0 / .35);
+  --glow: 0 6px 18px rgb(0 0 0 / .45);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 40;
+  background: var(--paper);
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ── Fejléc ── */
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 30;
+  background: var(--paper);
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+.topbar.scrolled { border-bottom-color: var(--rule); }
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px 6px 4px; border-radius: 10px; flex: none; }
+.brand:hover { background: var(--surface-2); }
+.brand-mark { width: 28px; height: 28px; }
+.brand-mark .o { fill: none; stroke: var(--ink); stroke-width: 2.1; }
+.brand-mark .acc { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
+.brand-name {
+  font-family: var(--font-read);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: -.01em;
+  font-variation-settings: "opsz" 48;
+}
+.nowbook { min-width: 0; flex: 1; display: grid; line-height: 1.25; padding-left: 14px; border-left: 1px solid var(--rule); }
+.nb-title { font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nb-meta { display: flex; gap: 8px; align-items: center; color: var(--ink-3); font-size: .8rem; min-width: 0; }
+.nb-meta > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge {
+  flex: none;
+  font-size: .66rem;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-wash);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.actions { display: flex; gap: 2px; flex: none; }
+.tbtn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; border-radius: 10px; color: var(--ink-2); font-weight: 500; font-size: .9rem; }
+.tbtn:hover { background: var(--surface-2); color: var(--ink); }
+@media (max-width: 760px) {
+  .tbtn span { display: none; }
+  .tbtn { padding: 10px; }
+  .brand-name { display: none; }
+  .brand { padding: 6px; }
+  .nowbook { padding-left: 10px; }
+}
+
+/* ── Olvasó ── */
+.reader {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 30px calc(var(--player-h) + 64px);
+}
+.page { max-width: 35em; margin: 0 auto; font-size: calc(var(--read-size) * var(--read-scale)); }
+.runhead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .4em 1em;
+  margin: 0 0 2.4rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.runhead b { color: var(--ink-2); font-weight: 600; }
+.chapter {
+  font-family: var(--font-read);
+  line-height: 1.72;
+  color: var(--ink);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
+  font-optical-sizing: auto;
+}
+.chapter p { margin: 0; text-indent: 1.4em; }
+.chapter > p:first-child,
+.chapter :is(.h1, .h2, .h3, .sep, .verse) + p,
+.chapter p.verse,
+.chapter p.sep,
+.chapter p.dateline { text-indent: 0; }
+.chapter .h3 {
+  font-family: var(--font-ui);
+  font-size: .7em;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 2.6em 0 .5em;
+  line-height: 1.4;
+}
+.chapter > .h3:first-child { margin-top: 0; }
+.chapter .h1 {
+  font-weight: 500;
+  font-style: italic;
+  font-size: 2.1em;
+  line-height: 1.12;
+  letter-spacing: -.012em;
+  margin: 1.4em 0 .85em;
+  text-wrap: balance;
+  font-variation-settings: "opsz" 72;
+}
+.chapter .h3 + .h1, .chapter > .h1:first-child { margin-top: 0; }
+.chapter .h2 { font-weight: 600; font-size: 1.1em; line-height: 1.35; margin: 1.9em 0 .7em; text-wrap: balance; }
+.chapter p.verse { margin: 1.1em 0 1.1em 1.4em; line-height: 1.8; }
+.chapter p.sep { text-align: center; color: var(--ink-3); letter-spacing: .6em; margin: 1.5em 0; }
+.chapter p.dateline { text-align: right; font-style: italic; color: var(--ink-2); margin-top: .6em; }
+
+.s {
+  cursor: pointer;
+  border-radius: .2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color .15s;
+}
+@media (hover: hover) { .s:hover { background-color: var(--mark-hover); } }
+.s.cur {
+  color: var(--mark-ink);
+  background-color: transparent;
+  background-image: linear-gradient(var(--mark), var(--mark));
+  background-repeat: no-repeat;
+  background-size: 100% 80%;
+  background-position: 0 60%;
+  padding: 0 .12em;
+  margin: 0 -.12em;
+  animation: swipe .45s cubic-bezier(.22, .8, .25, 1) both;
+}
+@keyframes swipe { from { background-size: 0% 80%; } to { background-size: 100% 80%; } }
+
+.chapnav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 3.4rem; font-family: var(--font-ui); font-size: 15px; }
+.chap-btn {
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--surface);
+  min-width: 0;
+}
+.chap-btn.next { text-align: right; grid-column: 2; }
+.chap-btn:hover { border-color: var(--accent); }
+.cb-dir { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.cb-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 520px) {
+  .chapnav { grid-template-columns: 1fr; }
+  .chap-btn.next { grid-column: 1; }
+}
+
+.follow {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--player-h) + 14px);
+  z-index: 25;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-weight: 500;
+  font-size: .86rem;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+/* ── Lejátszó ── */
+.player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  box-shadow: var(--lift);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.seek { position: absolute; left: 0; right: 0; top: -9px; height: 18px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+.seek-track { width: 100%; height: 3px; background: var(--rule); transition: height .15s; }
+.seek-fill { height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); transition: transform .4s; }
+.seek:hover .seek-track, .seek:focus-visible .seek-track { height: 6px; }
+.seek:focus-visible { outline-offset: -2px; }
+.player-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 12px;
+  display: grid;
+  gap: 8px;
+}
+.spoken { margin: 0; display: flex; gap: 10px; align-items: baseline; min-width: 0; font-size: .86rem; }
+.spoken-label { flex: none; font-size: .64rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 600; color: var(--accent); }
+.spoken-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-read); font-style: italic; color: var(--ink-2); }
+.pmeta { display: flex; justify-content: space-between; gap: 12px; font-size: .8rem; color: var(--ink-3); font-variant-numeric: tabular-nums; min-width: 0; }
+.pm-chap { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); font-weight: 500; }
+.pm-right { flex: none; display: flex; gap: 6px; }
+.controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.c-left { justify-self: start; min-width: 0; max-width: 100%; }
+.c-right { justify-self: end; display: flex; gap: 6px; }
+.c-mid { display: flex; align-items: center; gap: 10px; }
+.ibtn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); }
+.ibtn:hover { background: var(--surface-2); color: var(--ink); }
+.play {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--glow);
+  transition: transform .12s, background-color .15s;
+}
+.play svg { width: 26px; height: 26px; }
+.play:hover { background: var(--accent-strong); }
+.play:active { transform: scale(.96); }
+.play .i-pause, .play.on .i-play { display: none; }
+.play { position: relative; }
+.play.busy::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: spin .9s linear infinite;
+}
+.play.on .i-pause { display: block; }
+.pill {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  font-size: .82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pill .ico { width: 17px; height: 17px; }
+.pill:hover { border-color: var(--ink-3); color: var(--ink); }
+.pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  height: 34px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.chip:hover { color: var(--ink); }
+.chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.chip.warn { background: var(--warn-wash); color: var(--warn-ink); }
+.chip.warn .chip-dot { background: var(--warn-ink); }
+#voiceChipText { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 520px) {
+  .c-mid { gap: 2px; }
+  .pill { padding: 0 9px; }
+  .chip { padding: 0 10px 0 8px; gap: 6px; }
+  .play { width: 54px; height: 54px; }
+  .ibtn { width: 40px; height: 40px; }
+  #sleepLabel:empty { display: none; }
+}
+
+/* ── Oldalsó panelek ── */
+dialog.sheet {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(420px, 100%);
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+dialog.sheet.from-left { inset: 0 auto 0 0; border-left: 0; border-right: 1px solid var(--rule); }
+dialog.sheet[open] { display: flex; flex-direction: column; animation: sheet-in .22s cubic-bezier(.2, .8, .2, 1); }
+dialog.sheet.from-left[open] { animation-name: sheet-in-left; }
+dialog::backdrop { background: var(--scrim); }
+@keyframes sheet-in { from { transform: translateX(24px); opacity: 0; } }
+@keyframes sheet-in-left { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes sheet-up { from { transform: translateY(32px); opacity: 0; } }
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: calc(14px + env(safe-area-inset-top, 0px)) 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.sheet-head h2 { margin: 0; font-family: var(--font-read); font-style: italic; font-weight: 500; font-size: 1.5rem; font-variation-settings: "opsz" 48; }
+.x { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); flex: none; }
+.x:hover { background: var(--surface-2); color: var(--ink); }
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 18px calc(28px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  align-content: start;
+  gap: 24px;
+}
+@media (max-width: 640px) {
+  dialog.sheet, dialog.sheet.from-left {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    max-height: 88%;
+    border: 0;
+    border-top: 1px solid var(--rule);
+    border-radius: 18px 18px 0 0;
+  }
+  dialog.sheet[open], dialog.sheet.from-left[open] { animation-name: sheet-up; }
+  .sheet-head { padding-block: 14px 12px; }
+}
+
+.field { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.field > label, .label { font-weight: 600; font-size: .87rem; color: var(--ink); padding: 0; }
+.label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.label-row output, .muted { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: .84rem; font-weight: 500; }
+.hint { margin: 0; color: var(--ink-3); font-size: .82rem; line-height: 1.5; }
+.hint.warn { color: var(--warn-ink); background: var(--warn-wash); padding: 10px 12px; border-radius: 10px; }
+select, input[type="text"], textarea {
+  width: 100%;
+  font: inherit;
+  font-size: .92rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+select:focus-visible, input[type="text"]:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
+.check { display: flex; gap: 10px; align-items: center; font-size: .9rem; cursor: pointer; font-weight: 500; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface-2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { padding: 8px 6px; border-radius: 8px; font-size: .86rem; font-weight: 500; color: var(--ink-2); }
+.seg button[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+.stepper { display: flex; align-items: center; gap: 10px; }
+.stepper button { width: 46px; height: 38px; border: 1px solid var(--rule); border-radius: 10px; font-family: var(--font-read); font-weight: 600; }
+.stepper button:hover { border-color: var(--ink-3); }
+.stepper output { min-width: 4em; text-align: center; font-variant-numeric: tabular-nums; }
+.try { display: flex; gap: 8px; }
+.try input { flex: 1; min-width: 0; }
+.btn { padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: .9rem; background: var(--accent); color: var(--on-accent); white-space: nowrap; }
+.btn:hover { background: var(--accent-strong); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+.btn.ghost:hover { border-color: var(--ink-3); }
+.btn.danger { background: transparent; color: var(--danger); border: 1px solid currentColor; }
+.tryout {
+  margin: 0;
+  min-height: 2.6em;
+  font-family: var(--font-read);
+  font-style: italic;
+  color: var(--ink-2);
+  font-size: .96rem;
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--rule);
+}
+.tryout::before { content: "Így mondja: "; font-family: var(--font-ui); font-style: normal; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.keys { margin: 0; padding: 14px 0 0; border-top: 1px solid var(--rule); display: grid; gap: 8px; font-size: .84rem; color: var(--ink-2); }
+.keys div { display: flex; gap: 10px; align-items: center; }
+.credits { font-size: .76rem; }
+kbd {
+  font-family: var(--font-ui);
+  font-size: .74rem;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink-2);
+  min-width: 2.2em;
+  text-align: center;
+}
+
+/* Tartalom */
+.toc-meta { display: grid; gap: 4px; }
+.toc-book { font-family: var(--font-read); font-weight: 600; font-size: 1.06rem; line-height: 1.3; }
+.toc-sub { color: var(--ink-3); font-size: .84rem; }
+.toc { list-style: none; margin: 0 -8px; padding: 0; display: grid; gap: 2px; }
+.toc-item { width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 14px; text-align: left; padding: 10px 12px; border-radius: 10px; }
+.toc-item:hover { background: var(--surface-2); }
+.toc .lvl1 .toc-item { padding-left: 28px; font-size: .93rem; }
+.toc .lvl2 .toc-item { padding-left: 44px; font-size: .9rem; }
+.toc-title { min-width: 0; }
+.toc-dur { flex: none; color: var(--ink-3); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.toc-item.read .toc-title { color: var(--ink-3); }
+.toc-item.current { background: var(--accent-wash); }
+.toc-item.current .toc-title { font-weight: 600; color: var(--ink); }
+.toc-item.current .toc-dur::before { content: "most · "; color: var(--accent); font-weight: 600; }
+
+/* Könyvtár */
+.open-zone { display: grid; gap: 12px; justify-items: start; padding: 18px; border: 1.5px dashed var(--rule); border-radius: 14px; background: var(--paper); }
+.install-zone { display: grid; gap: 8px; justify-items: start; }
+.book-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.book-row { display: flex; align-items: center; gap: 4px; padding: 8px; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper); }
+.book-row.current { border-color: var(--accent); }
+.book-open { flex: 1; min-width: 0; display: flex; gap: 12px; align-items: center; text-align: left; border-radius: 8px; }
+.cover {
+  width: 44px;
+  height: 62px;
+  flex: none;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.cover.gen { display: grid; place-items: center; font-family: var(--font-read); font-style: italic; font-weight: 600; color: var(--accent); font-size: 1.35rem; }
+.bk-text { display: grid; gap: 2px; min-width: 0; }
+.bk-title { font-weight: 600; font-size: .92rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.bk-meta { color: var(--ink-3); font-size: .8rem; }
+.book-del { width: 36px; height: 36px; border-radius: 50%; color: var(--ink-3); display: grid; place-items: center; flex: none; }
+.book-del:hover { background: var(--surface-2); color: var(--danger); }
+.lib-foot { display: grid; gap: 10px; justify-items: start; }
+.confirm { display: grid; gap: 10px; }
+.confirm .row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Ráhúzás, értesítés ── */
+.dropzone {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(3px);
+}
+.dz-card {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 36px 44px;
+  border: 2px dashed var(--accent);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+  text-align: center;
+}
+.dz-card .ico { width: 40px; height: 40px; stroke-width: 1.5; }
+.dz-card p { margin: 0; }
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--player-h) + 16px);
+  transform: translate(-50%, 8px);
+  z-index: 50;
+  width: max-content;
+  max-width: min(540px, calc(100% - 32px));
+  background: var(--ink);
+  color: var(--paper);
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: .88rem;
+  line-height: 1.45;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity .2s, transform .2s;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast[data-kind="error"] { background: var(--danger); color: var(--paper); }
+.toast[data-kind="busy"]::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .s.cur, dialog.sheet[open], .toast[data-kind="busy"]::before, .play.busy::after { animation: none; }
+  .seek-fill, .toast { transition: none; }
+}
+
+</style>
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <button class="brand" id="brandBtn" type="button" aria-label="Mesélő: könyvtár megnyitása">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="o" cx="12" cy="15.2" r="5.6"/><path class="acc" d="M10.7 2.9 8.8 7.6M16.2 2.9l-1.9 4.7"/></svg>
+      <span class="brand-name">Mesélő</span>
+    </button>
+    <div class="nowbook">
+      <span class="nb-title" id="nbTitle"></span>
+      <span class="nb-meta"><span id="nbAuthor"></span><span class="badge" id="sampleBadge" hidden>Minta</span></span>
+    </div>
+    <nav class="actions" aria-label="Fő műveletek">
+      <button class="tbtn" id="tocBtn" type="button" aria-label="Tartalom">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h14"/></svg><span>Tartalom</span>
+      </button>
+      <button class="tbtn" id="libBtn" type="button" aria-label="Könyvtár">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h3.2v15H5zM10.4 4.5h3.2v15h-3.2zM15.6 5.6l3-.8 3.4 14.4-3 .8z"/></svg><span>Könyvtár</span>
+      </button>
+      <button class="tbtn" id="setBtn" type="button" aria-label="Beállítások">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span>Beállítások</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="reader" id="reader">
+  <div class="page">
+    <p class="runhead" id="runHead"></p>
+    <article class="chapter" id="chapter" lang="hu"></article>
+    <nav class="chapnav" id="chapNav" aria-label="Fejezetek">
+      <button type="button" class="chap-btn prev" id="prevChap"><span class="cb-dir">Előző rész</span><span class="cb-title" id="prevChapTitle"></span></button>
+      <button type="button" class="chap-btn next" id="nextChap"><span class="cb-dir">Következő rész</span><span class="cb-title" id="nextChapTitle"></span></button>
+    </nav>
+  </div>
+</main>
+
+<button type="button" class="follow" id="followBtn" hidden>Ugrás a felolvasott részhez</button>
+
+<footer class="player" id="player">
+  <div class="seek" id="seek" role="slider" tabindex="0" aria-label="Haladás a könyvben" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="seek-track"><div class="seek-fill" id="seekFill"></div></div>
+  </div>
+  <div class="player-inner">
+    <p class="spoken" id="spoken"><span class="spoken-label" id="spokenLabel">Kimondva</span><span class="spoken-text" id="spokenText">…</span></p>
+    <div class="pmeta">
+      <span class="pm-chap" id="chapLabel"></span>
+      <span class="pm-right"><span id="pctLabel">0%</span><span aria-hidden="true">·</span><span id="remainLabel"></span></span>
+    </div>
+    <div class="controls">
+      <div class="c-left">
+        <button type="button" class="chip" id="voiceChip" aria-label="Hang kiválasztása"><span class="chip-dot"></span><span id="voiceChipText">Hang</span></button>
+      </div>
+      <div class="c-mid">
+        <button type="button" class="ibtn" id="prevBtn" aria-label="Előző mondat" title="Előző mondat (←)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12"/><path d="M18 6.6 10.2 12 18 17.4z" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="play" id="playBtn" aria-label="Felolvasás" aria-pressed="false" title="Lejátszás / szünet (szóköz)">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 5.6v12.8a.8.8 0 0 0 1.2.7l9.9-6.4a.8.8 0 0 0 0-1.4L9.8 4.9a.8.8 0 0 0-1.2.7z" fill="currentColor"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="ibtn" id="nextBtn" aria-label="Következő mondat" title="Következő mondat (→)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12"/><path d="M6 6.6 13.8 12 6 17.4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="c-right">
+        <button type="button" class="pill" id="rateBtn" aria-label="Tempó váltása" title="Tempó">1,0×</button>
+        <button type="button" class="pill" id="sleepBtn" aria-label="Elalvási időzítő: ki" title="Elalvási időzítő">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.6A7.6 7.6 0 0 1 9.4 5a7.6 7.6 0 1 0 9.6 9.6z"/></svg><span id="sleepLabel"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<dialog id="tocDlg" class="sheet from-left" aria-labelledby="tocHead">
+  <div class="sheet-head">
+    <h2 id="tocHead">Tartalom</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="toc-meta"><span class="toc-book" id="tocBook"></span><span class="toc-sub" id="tocSub"></span></div>
+    <ol class="toc" id="tocList"></ol>
+  </div>
+</dialog>
+
+<dialog id="libDlg" class="sheet" aria-labelledby="libHead">
+  <div class="sheet-head">
+    <h2 id="libHead">Könyvtár</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="open-zone">
+      <button type="button" class="btn" id="openBtn">EPUB-fájl megnyitása</button>
+      <p class="hint">Vagy húzd rá a fájlt az oldalra. A könyvek csak ebben a böngészőben maradnak, nem töltődnek fel sehová. DRM-védett könyvet nem tudok megnyitni.</p>
+    </div>
+    <div class="install-zone" id="installZone" hidden>
+      <button type="button" class="btn ghost" id="installBtn">Mesélő telepítése erre az eszközre</button>
+      <p class="hint">Telepítve saját ikonnal, külön ablakban indul, és internet nélkül is működik.</p>
+    </div>
+    <ul class="book-list" id="bookList"></ul>
+    <div class="lib-foot">
+      <button type="button" class="btn ghost" id="clearBtn" hidden>Mentett könyvek törlése</button>
+      <div class="confirm" id="clearConfirm" hidden>
+        <p class="hint">Minden mentett könyvet és könyvjelzőt törölsz ebből a böngészőből.</p>
+        <div class="row"><button type="button" class="btn danger" id="clearYes">Törlés</button><button type="button" class="btn ghost" id="clearNo">Mégse</button></div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="setDlg" class="sheet" aria-labelledby="setHead">
+  <div class="sheet-head">
+    <h2 id="setHead">Beállítások</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label for="voiceSel">Hang</label>
+      <select id="voiceSel"></select>
+      <p class="hint" id="voiceHint"></p>
+      <label class="check" for="allVoices"><input type="checkbox" id="allVoices"> Más nyelvű hangok is látszanak</label>
+    </div>
+    <div class="field">
+      <div class="label-row"><label for="rateRange">Tempó</label><output id="rateOut" for="rateRange">1,0×</output></div>
+      <input type="range" id="rateRange" min="0.6" max="1.8" step="0.05" value="1">
+    </div>
+    <div class="field" id="pitchField">
+      <div class="label-row"><label for="pitchRange">Hangmagasság</label><output id="pitchOut" for="pitchRange">1,00</output></div>
+      <input type="range" id="pitchRange" min="0.8" max="1.2" step="0.02" value="1">
+    </div>
+    <div class="field">
+      <span class="label" id="pauseLabel">Szünet a bekezdések között</span>
+      <div class="seg" id="pauseSeg" role="radiogroup" aria-labelledby="pauseLabel">
+        <button type="button" role="radio" data-pause="short" aria-checked="false">Rövid</button>
+        <button type="button" role="radio" data-pause="mid" aria-checked="true">Közepes</button>
+        <button type="button" role="radio" data-pause="long" aria-checked="false">Hosszú</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="fontLabel">Betűméret</span>
+      <div class="stepper" role="group" aria-labelledby="fontLabel">
+        <button type="button" id="fontDown" aria-label="Kisebb betű">A−</button>
+        <output id="fontOut">100%</output>
+        <button type="button" id="fontUp" aria-label="Nagyobb betű">A+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check" for="showSpoken"><input type="checkbox" id="showSpoken"> Kimondott szöveg mutatása</label>
+      <p class="hint">A lejátszó fölött látod, hogyan olvassa ki a számokat, dátumokat és rövidítéseket.</p>
+    </div>
+    <div class="field">
+      <div class="label-row"><label for="dictArea">Kiejtési szótár</label><span class="muted" id="dictCount"></span></div>
+      <textarea id="dictArea" rows="4" spellcheck="false" placeholder="Hermion = Hermájon&#10;Chicago = Sikágó"></textarea>
+      <p class="hint">Soronként egy szabály: írott alak = kimondott alak. A szabály a szó elejére illeszkedik, így a toldalékos alakokra is működik (Chicagóban → Sikágóban).</p>
+    </div>
+    <form class="field" id="tryForm">
+      <label for="tryInput">Kiejtéspróba</label>
+      <div class="try"><input type="text" id="tryInput" value="1848. március 15-én dr. Kovács kb. 3,5 km-t gyalogolt a II. kerületig." autocomplete="off"><button type="submit" class="btn" id="tryBtn">Meghallgatom</button></div>
+      <p class="tryout" id="tryOut" aria-live="polite"></p>
+    </form>
+    <div class="keys" aria-label="Billentyűparancsok">
+      <div><kbd>Szóköz</kbd> lejátszás vagy szünet</div>
+      <div><kbd>←</kbd><kbd>→</kbd> előző vagy következő mondat</div>
+    </div>
+    <p class="hint credits">Imre hangja: Piper hangmodell (Open Home Foundation, CC0 hangfelvételek alapján). Kiejtés: espeak-ng (GPL-3.0). Futtatás: ONNX Runtime Web (MIT).</p>
+  </div>
+</dialog>
+
+<div class="dropzone" id="dropzone" hidden>
+  <div class="dz-card">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.6c3-1 6-1 9 1 3-2 6-2 9-1V19c-3-1-6-1-9 1-3-2-6-2-9-1zM12 6.6V20"/></svg>
+    <p>Engedd el, és megnyitom a könyvet</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<input type="file" id="fileInput" accept=".epub,application/epub+zip" hidden>
+
+<script>
+window.MESELO_TTS = {"cache":"meselo-hang-v2","config":"imre/config.json","files":[{"name":"ortWasm","path":"ort-wasm-simd-threaded.wasm","size":11210254},{"name":"phonWasm","path":"piper_phonemize.wasm","size":635212},{"name":"phonData","path":"piper_phonemize.data","size":990354},{"part":1,"path":"imre/model-1.bin","size":13631488},{"part":2,"path":"imre/model-2.bin","size":13631488},{"part":3,"path":"imre/model-3.bin","size":13631488},{"part":4,"path":"imre/model-4.bin","size":13631488},{"part":5,"path":"imre/model-5.bin","size":8623244}]};
+window.MESELO_SITE = true;
+</script>
+<script>
+/*! Mesélő · HuText – magyar szöveg előkészítése felolvasáshoz */
+(function (root) {
+  'use strict';
+
+  // ── Számnevek ─────────────────────────────────────────────────────────
+  const ONES = ['', 'egy', 'kettő', 'három', 'négy', 'öt', 'hat', 'hét', 'nyolc', 'kilenc'];
+  const ONES_ATTR = ['', 'egy', 'két', 'három', 'négy', 'öt', 'hat', 'hét', 'nyolc', 'kilenc'];
+  const TENS = ['', 'tíz', 'húsz', 'harminc', 'negyven', 'ötven', 'hatvan', 'hetven', 'nyolcvan', 'kilencven'];
+  const TENS_PRE = ['', 'tizen', 'huszon', 'harminc', 'negyven', 'ötven', 'hatvan', 'hetven', 'nyolcvan', 'kilencven'];
+  const BIG = [[1e12, 'billió'], [1e9, 'milliárd'], [1e6, 'millió'], [1e3, 'ezer']];
+
+  function below1000(n, attr) {
+    const h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), u = n % 10;
+    let s = '';
+    if (h) s += (h === 1 ? '' : ONES_ATTR[h]) + 'száz';
+    if (t) s += u ? TENS_PRE[t] : TENS[t];
+    if (u) s += (attr ? ONES_ATTR : ONES)[u];
+    return s;
+  }
+
+  function digitsAloud(str) {
+    return String(str).replace(/\D/g, '').split('')
+      .map((d) => (d === '0' ? 'nulla' : ONES[+d])).join(' ');
+  }
+
+  // attr = jelzői helyzet („két ember”, nem „kettő ember”)
+  function cardinal(n, attr) {
+    if (n === 0) return 'nulla';
+    if (!(n > 0) || n >= 1e15 || n % 1) return digitsAloud(String(n));
+    const parts = [];
+    let rest = n;
+    for (const [val, name] of BIG) {
+      const q = Math.floor(rest / val);
+      if (!q) continue;
+      parts.push(val === 1e3 && q === 1 ? 'ezer' : below1000(q, true) + name);
+      rest -= q * val;
+    }
+    if (rest) parts.push(below1000(rest, attr));
+    // 2000 fölött kötőjellel tagolunk: kétezer-huszonhat
+    return n <= 2000 ? parts.join('') : parts.join('-');
+  }
+
+  const ORD_MAP = [
+    ['kilencven', 'kilencvenedik'], ['nyolcvan', 'nyolcvanadik'], ['milliárd', 'milliárdodik'],
+    ['harminc', 'harmincadik'], ['negyven', 'negyvenedik'], ['hetven', 'hetvenedik'], ['hatvan', 'hatvanadik'],
+    ['kilenc', 'kilencedik'], ['millió', 'milliomodik'], ['billió', 'billiomodik'],
+    ['ötven', 'ötvenedik'], ['kettő', 'kettedik'], ['három', 'harmadik'], ['nyolc', 'nyolcadik'], ['nulla', 'nulladik'],
+    ['négy', 'negyedik'], ['száz', 'századik'], ['húsz', 'huszadik'], ['ezer', 'ezredik'],
+    ['egy', 'egyedik'], ['tíz', 'tizedik'], ['hét', 'hetedik'], ['hat', 'hatodik'], ['öt', 'ötödik'],
+  ];
+
+  function ordinal(n) {
+    if (n === 1) return 'első';
+    if (n === 2) return 'második';
+    const c = cardinal(n);
+    for (const [a, b] of ORD_MAP) if (c.endsWith(a)) return c.slice(0, -a.length) + b;
+    return c + 'adik';
+  }
+
+  // Ragok hangrendi párjai: január 2-től → másodikától (a ragot a kimondott tőhöz igazítjuk)
+  const TO_BACK = { től: 'tól', ről: 'ról', ből: 'ból', hez: 'hoz', höz: 'hoz', nek: 'nak', vel: 'val',
+    ben: 'ban', be: 'ba', re: 'ra', nél: 'nál' };
+  const TO_FRONT = { tól: 'től', ról: 'ről', ból: 'ből', hoz: 'hez', nak: 'nek', val: 'vel',
+    ban: 'ben', ba: 'be', ra: 're', nál: 'nél' };
+  const harmonize = (suf, back) => ((back ? TO_BACK : TO_FRONT)[suf] || suf);
+
+  // Dátum napja: 15-én → tizenötödikén, 1-jén → elsején, 20-ig → huszadikáig
+  function dateDay(n, suffix) {
+    const stem = n === 1 ? 'elsej' : ordinal(n);
+    const back = n !== 1 && /[ao]dik$/.test(stem);
+    const vs = back ? 'a' : 'e', vl = back ? 'á' : 'é';
+    let suf = (suffix || '').toLowerCase();
+    suf = suf.replace(/^(?:[aeoö]?d)?ik/, '');
+    suf = suf.replace(/^j(?=[aáeé])/, '');
+    if (!suf) return stem + vs;
+    if (/^[aáeé]/.test(suf)) {
+      let v = suf[0];
+      if (back) v = v === 'e' ? 'a' : v === 'é' ? 'á' : v;
+      else v = v === 'a' ? 'e' : v === 'á' ? 'é' : v;
+      return stem + v + harmonize(suf.slice(1), back);
+    }
+    if (suf === 'i') return stem + vs + 'i';
+    return stem + vl + harmonize(suf, back);
+  }
+
+  // ── Toldalékolás ──────────────────────────────────────────────────────
+  const VOWELS = 'aáeéiíoóöőuúüű';
+  const isVowel = (c) => VOWELS.includes(c);
+  const NO_LENGTHEN = /^(?:kor|ként|szerű)/;
+
+  function attach(word, suffix) {
+    if (!suffix) return word;
+    let suf = suffix.toLowerCase();
+    const di = /(cs|dz|gy|ly|ny|sz|ty|zs)$/.exec(word);
+    const last = word.slice(-1);
+    // -val/-vel/-vá/-vé hasonul: öt + vel → öttel
+    const vm = /^v(al|el|á|é)(.*)$/.exec(suf);
+    if (vm && !isVowel(last)) suf = (di ? di[1] : last) + vm[1] + vm[2];
+    // kettőzött kétjegyű betű: egy + gyel → eggyel, húsz + szal → hússzal
+    if (di && suf.startsWith(di[1]) && /^(?:cs|dz|gy|ly|ny|sz|ty|zs)(?:al|el|á|é)/.test(suf)) {
+      return word.slice(0, -2) + di[1][0] + suf;
+    }
+    // tővégi a, e megnyúlik: nulla → nullát, óra → óráig
+    if (/[ae]$/.test(word) && !NO_LENGTHEN.test(suf)) {
+      return word.slice(0, -1) + (last === 'a' ? 'á' : 'é') + suf;
+    }
+    return word + suf;
+  }
+
+  // Számnév + rag a tőváltakozásokkal: hármat, hetet, tizet, ezret, kettes, kétszer
+  function numAttach(words, suffix) {
+    const suf = suffix.toLowerCase();
+    if (/kettő$/.test(words)) {
+      if (/^(?:sz[eoö]r|féle|fajta)/.test(suf)) return words.slice(0, -5) + 'két' + suf;
+      if (/^[aeoö]/.test(suf)) return words.slice(0, -5) + 'kett' + suf;
+      return attach(words, suf);
+    }
+    if (/^[aeoö]/.test(suf)) {
+      if (/három$/.test(words)) return words.slice(0, -5) + 'hárm' + suf;
+      if (/hét$/.test(words)) return words.slice(0, -3) + 'het' + suf;
+      if (/tíz$/.test(words)) return words.slice(0, -3) + 'tiz' + suf;
+      if (/ezer$/.test(words)) return words.slice(0, -4) + 'ezr' + suf;
+    }
+    return attach(words, suf);
+  }
+
+  const cap = (s) => s.replace(/^(\P{L}*)(\p{L})/u, (m, a, b) => a + b.toUpperCase());
+
+  // ── Hónapok, mértékegységek ───────────────────────────────────────────
+  const MONTHS = ['január', 'február', 'március', 'április', 'május', 'június', 'július',
+    'augusztus', 'szeptember', 'október', 'november', 'december'];
+  const MONTH_ALT = MONTHS.join('|');
+  const isMonth = (w) => MONTHS.includes(w);
+  const MONTH_ABBR = {
+    jan: 'január', feb: 'február', febr: 'február', márc: 'március', ápr: 'április', máj: 'május',
+    jún: 'június', júl: 'július', aug: 'augusztus', szep: 'szeptember', szept: 'szeptember',
+    okt: 'október', nov: 'november', dec: 'december',
+  };
+  const DATE_POST = new Set(['és', 's', 'vagy', 'meg', 'illetve', 'között', 'közt', 'óta', 'után', 'előtt',
+    'körül', 'táján', 'tájékán', 'reggel', 'délelőtt', 'délben', 'délután', 'este', 'éjjel', 'éjjelén', 'hajnalban']);
+
+  const UNIT_WORD = {
+    '%': 'százalék', '‰': 'ezrelék', '°C': 'Celsius-fok', '°': 'fok', 'Ft': 'forint', 'HUF': 'forint',
+    'EUR': 'euró', '€': 'euró', 'USD': 'dollár', '$': 'dollár', '£': 'font', 'km/h': 'kilométer per óra',
+    'km²': 'négyzetkilométer', 'm²': 'négyzetméter', 'm³': 'köbméter', 'km': 'kilométer', 'cm': 'centiméter',
+    'mm': 'milliméter', 'dkg': 'dekagramm', 'kg': 'kilogramm', 'mg': 'milligramm', 'ml': 'milliliter',
+    'dl': 'deciliter', 'cl': 'centiliter', 'db': 'darab', 'mp': 'másodperc', 'm': 'méter', 'g': 'gramm', 'l': 'liter',
+  };
+  const UNIT_RE = /^(\s?)(%|‰|°C|°|Ft|HUF|EUR|€|USD|\$|£|km\/h|km²|m²|m³|km|cm|mm|dkg|kg|mg|ml|dl|cl|db|mp|m|g|l)(?![\p{L}\d])(?:-(\p{L}+))?/u;
+
+  const FRAC = ['', 'tized', 'század', 'ezred', 'tízezred', 'százezred', 'milliomod'];
+  function decimalWords(intStr, dec) {
+    const ip = cardinal(Number(intStr), true);
+    if (dec.length > 6) return ip + ' egész ' + digitsAloud(dec);
+    const dn = Number(dec);
+    if (dn === 0) return ip + ' egész nulla';
+    return ip + ' egész ' + cardinal(dn, true) + ' ' + FRAC[dec.length];
+  }
+
+  function romanToInt(r) {
+    if (!r || !/^C{0,3}(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(r)) return 0;
+    const V = { I: 1, V: 5, X: 10, L: 50, C: 100 };
+    let t = 0;
+    for (let i = 0; i < r.length; i++) {
+      const a = V[r[i]], b = V[r[i + 1]] || 0;
+      t += a < b ? -a : a;
+    }
+    return t;
+  }
+
+  const lastToken = (before) => ((/([\p{L}\d]+)\s*$/u.exec(before) || [])[1] || '').toLowerCase();
+  const isArticle = (w) => w === 'a' || w === 'az';
+  const SENT_AFTER = /^\s+[\p{Lu}„"«(–—]/u;
+  const isEnd = (rest) => /^\s*$/.test(rest);
+
+  // ── Átalakító lépések ─────────────────────────────────────────────────
+  function cleanPass(s) {
+    s = s.normalize('NFC');
+    s = s.replace(/[­​-‍⁠﻿]/g, '');
+    // régi, Latin-1-es magyar e-könyvek: õ, û a helyes ő, ű helyett
+    s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
+    return s.replace(/[\r\n\t]+/g, ' ');
+  }
+
+  function dialoguePass(s) {
+    // gondolatjeles párbeszéd: a jelet nem mondjuk ki, csak szünetet tartunk
+    s = s.replace(/^([\s„"«»“”]*)[–—―-]\s+/, '$1');
+    s = s.replace(/([.!?…]["”»’)]*)\s+[–—―]\s+/g, '$1 ');
+    s = s.replace(/\s*[–—―]\s*,/g, ',');
+    s = s.replace(/\s+[–—―]\s+/g, ', ');
+    s = s.replace(/\s+-\s+/g, ', ');
+    s = s.replace(/[„“”"«»‹›‚‘]/g, '');
+    s = s.replace(/([!?…])\s*,/g, '$1').replace(/,\s*([.!?…])/g, '$1').replace(/,\s*,/g, ',');
+    // a sorvégi vessző marad (folytatódó hanglejtés), csak a gondolatjelből lett maradékot töröljük
+    s = s.replace(/^\s*,\s*/, '').replace(/\s+[–—―]\s*$/, '');
+    return s;
+  }
+
+  function symbolPass(s) {
+    return s
+      .replace(/\s*&\s*/g, ' és ')
+      .replace(/§/g, ' paragrafus ')
+      .replace(/(\d)\s*\+\s*(?=\d)/g, '$1 plusz ')
+      .replace(/(\p{L})\/(\p{L})/gu, '$1 $2')
+      .replace(/(\d)\/(\d)/g, '$1 per $2')
+      .replace(/[*•†‡#]/g, '')
+      .replace(/\.{3,}/g, '…');
+  }
+
+  const MULTI_ABBR = [
+    [/(?<!\p{L})Kr\.\s?e\./gu, 'Krisztus előtt'],
+    [/(?<!\p{L})Kr\.\s?u\./gu, 'Krisztus után'],
+    [/(?<!\p{L})i\.\s?e\./gu, 'időszámításunk előtt'],
+    [/(?<!\p{L})i\.\s?sz\./gu, 'időszámításunk szerint'],
+    [/(?<!\p{L})[uU]\.\s?i\./gu, 'utóirat'],
+  ];
+  function multiAbbrPass(s) {
+    for (const [re, exp] of MULTI_ABBR) {
+      s = s.replace(re, (m, off, str) => {
+        const rest = str.slice(off + m.length);
+        let w = /^\p{Lu}/u.test(m) && m[0] !== 'K' ? cap(exp) : exp;
+        if (isEnd(rest) || SENT_AFTER.test(rest)) w += '.';
+        return w;
+      });
+    }
+    return s;
+  }
+
+  function monthAbbrPass(s) {
+    return s.replace(/(?<!\p{L})(jan|febr?|márc|ápr|máj|jún|júl|aug|szept?|okt|nov|dec)\.(?=\s?\d)/giu,
+      (m, a) => MONTH_ABBR[a.toLowerCase()]);
+  }
+
+  // 2026. 10. 20. → kétezer-huszonhat október huszadika
+  const RE_NUMDATE = /(?<![\d.])(\d{4})\.\s?(\d{1,2}|[IVX]{1,4})\.\s?(\d{1,2})(?:(\.)|-(\p{L}+))(?!\d)/gu;
+  function numDatePass(s) {
+    return s.replace(RE_NUMDATE, (m, y, mo, d, dot, suf, off, str) => {
+      const month = /^\d/.test(mo) ? Number(mo) : romanToInt(mo);
+      const day = Number(d);
+      if (!month || month > 12 || day < 1 || day > 31) return m;
+      let w = cardinal(Number(y)) + ' ' + MONTHS[month - 1] + ' ' + dateDay(day, suf || '');
+      if (dot) {
+        const rest = str.slice(off + m.length);
+        if (isEnd(rest) || SENT_AFTER.test(rest)) w += '.';
+      }
+      return w;
+    });
+  }
+
+  // 8:30-kor → nyolc óra harminc perckor
+  const RE_TIME = /(?<![\d:,.])([01]?\d|2[0-3]):([0-5]\d)(?![\d:])(?:-(\p{L}+))?/gu;
+  function timePass(s) {
+    return s.replace(RE_TIME, (m, h, mm, suf) => {
+      let w = cardinal(Number(h), true) + ' óra';
+      if (mm !== '00') w += ' ' + cardinal(Number(mm), true) + ' perc';
+      if (suf) w = w.replace(/(\S+)$/, (x) => attach(x, suf));
+      return w;
+    });
+  }
+
+  const FR = { '½': 'fél', '¼': 'negyed', '¾': 'háromnegyed', '⅓': 'egyharmad', '⅔': 'kétharmad' };
+  function fractionPass(s) {
+    s = s.replace(/(\d+)\s?([½¼¾⅓⅔])/g, (m, n, f) => {
+      if (f === '½') return n === '1' ? 'másfél' : cardinal(Number(n), true) + ' és fél';
+      return cardinal(Number(n), true) + ' egész ' + FR[f];
+    });
+    return s.replace(/[½¼¾⅓⅔]/g, (f) => FR[f]);
+  }
+
+  function currencyPass(s) {
+    return s.replace(/(?<![\p{L}\d])([$€£])\s?(\d[\d    ]*(?:,\d+)?)/gu,
+      (m, c, num) => num.trim() + ' ' + c);
+  }
+
+  function negativePass(s) {
+    return s.replace(/(^|[\s(])[−-](?=\d)/g, '$1mínusz ');
+  }
+
+  // XIV. Lajos → tizennegyedik Lajos
+  const RE_ROMAN = /(?<![\p{L}\d.])([IVXLC]+)\.(?:-(\p{L}+))?(?=[\s,;:)\]–—…!?]|$)/gu;
+  const ROMAN_STOP = new Set(['C', 'L', 'CV', 'CI', 'LI', 'CL', 'CC', 'XL']);
+  function romanPass(s) {
+    return s.replace(RE_ROMAN, (m, r, suf, off, str) => {
+      if (ROMAN_STOP.has(r)) return m;
+      const n = romanToInt(r);
+      if (!n) return m;
+      const before = str.slice(0, off), rest = str.slice(off + m.length);
+      if (r.length === 1 && (/(?:^|[\s(])\p{Lu}\.\s*$/u.test(before) || /^\s*\p{Lu}\.(?:\s|$)/u.test(rest))) {
+        return m; // monogram: V. I. Lenin
+      }
+      let w = ordinal(n);
+      if (suf) w += suf.toLowerCase();
+      else if (isEnd(rest)) w += '.';
+      return w;
+    });
+  }
+
+  const SEP_CH = '[\\u00A0\\u202F\\u2009 ]';
+  const RE_NUM = new RegExp(
+    `(\\d{1,3}(?:${SEP_CH}\\d{3})+(?!\\d)|\\d+)(?:,(\\d+))?(\\.(?!\\d))?(?:-(\\p{L}+))?`, 'gu');
+  const RE_YEAR_MONTH = new RegExp(`^\\s+(?:${MONTH_ALT})(?!\\p{L})`, 'iu');
+  const RE_RANGE_DATE = new RegExp(`(?:${MONTH_ALT})\\s+\\d{1,2}\\s*[–—-]\\s*$`, 'iu');
+  const looksDateSuffix = (suf) => /^j?[áé](?!rt)/.test(suf) || /^j?[ae]i?$/.test(suf);
+
+  function numbersPass(s) {
+    let out = '', last = 0, m;
+    RE_NUM.lastIndex = 0;
+    while ((m = RE_NUM.exec(s))) {
+      const start = m.index;
+      let end = start + m[0].length;
+      const intStr = m[1].replace(/[    ]/g, '');
+      const dec = m[2];
+      const period = !!m[3];
+      const suffix = m[4] || '';
+      const before = s.slice(0, start);
+      const rest = s.slice(end);
+      const prevTok = lastToken(before);
+      const n = (intStr.length > 1 && intStr[0] === '0') || intStr.length > 15 ? null : Number(intStr);
+      let words, tail = '';
+
+      if (n === null) {
+        words = digitsAloud(intStr) + (dec !== undefined ? ' egész ' + digitsAloud(dec) : '');
+        if (suffix) words = attach(words, suffix);
+        if (period) tail = '.';
+      } else if (dec !== undefined) {
+        words = decimalWords(intStr, dec);
+        const u = !suffix && !period && UNIT_RE.exec(rest);
+        if (u) { words += ' ' + attach(UNIT_WORD[u[2]], u[3] || ''); end += u[0].length; }
+        else if (suffix) words = attach(words, suffix);
+        if (period) tail = '.';
+      } else if (n >= 1 && n <= 31 && (isMonth(prevTok) || RE_RANGE_DATE.test(before) || (suffix && !period && looksDateSuffix(suffix.toLowerCase())))) {
+        if (suffix) words = dateDay(n, suffix);
+        else if (period) {
+          const nx = /^\s+(\p{L}+)/u.exec(rest);
+          if (nx && /^\p{Ll}/u.test(nx[1]) && !DATE_POST.has(nx[1].toLowerCase())) words = ordinal(n);
+          else {
+            words = dateDay(n, '');
+            if (isEnd(rest) || SENT_AFTER.test(rest)) tail = '.';
+          }
+        } else words = dateDay(n, '');
+      } else if (period && !suffix && RE_YEAR_MONTH.test(rest)) {
+        words = cardinal(n); // évszám a dátumban: 1848. március
+      } else if (period) {
+        if (suffix) words = ordinal(n) + suffix.toLowerCase();
+        else if (/^\s+\p{Ll}/u.test(rest) || /^\s*[,;:)\]–—]/.test(rest)) words = ordinal(n);
+        else if (isArticle(prevTok)) { words = ordinal(n); if (isEnd(rest)) tail = '.'; }
+        else if (/^[\s„"«(]*$/.test(before) && isEnd(rest)) { words = ordinal(n); tail = '.'; }
+        else { words = cardinal(n); tail = '.'; }
+      } else if (suffix) {
+        const ordSuf = /^(?:[aeoö]?d)?ik/i;
+        words = ordSuf.test(suffix) ? ordinal(n) + suffix.toLowerCase().replace(ordSuf, '') : numAttach(cardinal(n), suffix);
+      } else {
+        const u = UNIT_RE.exec(rest);
+        if (u) {
+          words = cardinal(n, true) + ' ' + attach(UNIT_WORD[u[2]], u[3] || '');
+          end += u[0].length;
+        } else if (/^\s*[–—-]\s*\d+\.(?!\d)\s+\p{Ll}/u.test(rest)) {
+          words = ordinal(n); // 17–18. század
+        } else {
+          const attr = /^\s+\p{Ll}/u.test(rest) || /^\s*[–—-]\s*\d+(?:,\d+)?\s+\p{Ll}/u.test(rest);
+          words = cardinal(n, attr);
+        }
+      }
+
+      if (/\p{L}/u.test(before.slice(-1))) words = ' ' + words;
+      if (/[\p{L}\d]/u.test(s.charAt(end))) words += ' ';
+      out += s.slice(last, start) + words + tail;
+      last = end;
+      RE_NUM.lastIndex = end;
+    }
+    return out + s.slice(last);
+  }
+
+  const ABBR = [
+    ['pl', 'például', 'mid'], ['stb', 's a többi', 'end'], ['kb', 'körülbelül', 'mid'], ['ill', 'illetve', 'mid'],
+    ['ún', 'úgynevezett', 'mid'], ['vö', 'vesd össze', 'mid'], ['ld', 'lásd', 'mid'], ['uo', 'ugyanott', 'end'],
+    ['ti', 'tudniillik', 'mid'], ['tkp', 'tulajdonképpen', 'mid'], ['ca', 'cirka', 'mid'], ['szül', 'született', 'mid'],
+    ['ford', 'fordította', 'mid'], ['szerk', 'szerkesztette', 'mid'], ['max', 'maximum', 'mid'],
+    ['évf', 'évfolyam', 'end'], ['fej', 'fejezet', 'end'], ['old', 'oldal', 'end'], ['ker', 'kerület', 'end'],
+    ['krt', 'körút', 'end'], ['dr', 'doktor', 'title'], ['ifj', 'ifjabb', 'title'], ['id', 'idősebb', 'title'],
+    ['özv', 'özvegy', 'title'], ['gr', 'gróf', 'title'], ['br', 'báró', 'title'], ['hg', 'herceg', 'title'],
+    ['prof', 'professzor', 'title'], ['szt', 'szent', 'title'], ['nyug', 'nyugalmazott', 'title'],
+    ['mrs', 'misszisz', 'title'], ['mr', 'miszter', 'title'], ['ms', 'miz', 'title'], ['bp', 'Budapest', 'end'],
+  ];
+  const ABBR_MAP = new Map(ABBR.map((a) => [a[0], a]));
+  const RE_ABBR = new RegExp(
+    `(?<![\\p{L}\\d])(${ABBR.map((a) => a[0]).sort((x, y) => y.length - x.length).join('|')})\\.(?=[\\s,;:)\\]!?…]|$)`,
+    'giu');
+  function abbrPass(s) {
+    return s.replace(RE_ABBR, (m, k, off, str) => {
+      if (k.slice(1) !== k.slice(1).toLowerCase()) return m;
+      const [, exp, type] = ABBR_MAP.get(k.toLowerCase());
+      let w = /^\p{Lu}/u.test(k) ? cap(exp) : exp;
+      const rest = str.slice(off + m.length);
+      if (isEnd(rest) || (type === 'end' && SENT_AFTER.test(rest))) w += '.';
+      return w;
+    });
+  }
+
+  function capsPass(s) {
+    // csupa nagybetűs címek: ELSŐ FEJEZET → első fejezet (hogy ne betűzze)
+    return s.replace(/(?<!\p{L})\p{Lu}{4,}(?!\p{L})/gu, (w) => w.toLowerCase())
+      .replace(/(^|[\s(])S(?=\s+\p{Ll})/gu, '$1s');
+  }
+
+  // Kiejtési szótár: „Chicago = Sikágó” a toldalékos alakra is illik (Chicagóban → Sikágóban)
+  const LONG = { a: 'á', e: 'é', o: 'ó', ö: 'ő' };
+  function compileDict(text) {
+    const rules = [];
+    String(text || '').split(/\r?\n/).forEach((line) => {
+      const i = line.indexOf('=');
+      if (i < 1) return;
+      const from = line.slice(0, i).trim(), to = line.slice(i + 1).trim();
+      if (!from || !to) return;
+      const fin = from.slice(-1).toLowerCase();
+      const body = (LONG[fin] ? from.slice(0, -1) : from).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const pat = LONG[fin] ? `${body}[${fin}${LONG[fin]}]` : body;
+      try {
+        rules.push({ re: new RegExp(`(?<![\\p{L}\\d])${pat}`, 'giu'), to, from, fin });
+      } catch (e) { /* hibás sor: kihagyjuk */ }
+    });
+    return rules;
+  }
+  function applyDict(s, rules) {
+    for (const r of rules) {
+      s = s.replace(r.re, (m) => {
+        const longHit = LONG[r.fin] && m.slice(-1).toLowerCase() === LONG[r.fin];
+        const end = r.to.slice(-1);
+        return longHit && LONG[end] ? r.to.slice(0, -1) + LONG[end] : r.to;
+      });
+    }
+    return s;
+  }
+
+  function normalizeForSpeech(text, opts) {
+    const o = opts || {};
+    let s = cleanPass(String(text || ''));
+    if (o.dict && o.dict.length) s = applyDict(s, o.dict);
+    s = dialoguePass(s);
+    s = symbolPass(s);
+    s = multiAbbrPass(s);
+    s = monthAbbrPass(s);
+    s = numDatePass(s);
+    s = timePass(s);
+    s = fractionPass(s);
+    s = currencyPass(s);
+    s = negativePass(s);
+    s = romanPass(s);
+    s = numbersPass(s);
+    s = abbrPass(s);
+    s = capsPass(s);
+    s = s.replace(/[   ]/g, ' ').replace(/\s+/g, ' ').replace(/\s+([,.;:!?…])/g, '$1').trim();
+    // a mondatkezdő „s” kötőszó maradjon kisbetűs, különben betűként olvashatják
+    return /^s\s/.test(s) ? s : cap(s);
+  }
+
+  const hasSpeakable = (s) => /[\p{L}\p{N}]/u.test(s || '');
+
+  // ── Mondatokra bontás (a megjelenített szövegen) ──────────────────────
+  const NO_SPLIT = new Set(['dr', 'ifj', 'id', 'özv', 'gr', 'br', 'hg', 'prof', 'szt', 'nyug', 'mr', 'mrs', 'ms', 'st',
+    'kr', 'pl', 'kb', 'ill', 'ún', 'vö', 'ld', 'ti', 'tkp', 'ca', 'szül', 'ford', 'szerk', 'max', 'min', 'vs', 'kül',
+    'ált', 'jan', 'feb', 'febr', 'márc', 'ápr', 'máj', 'jún', 'júl', 'aug', 'szep', 'szept', 'okt', 'nov', 'dec',
+    'sz', 'u', 'i', 'e', 'ún']);
+  const isRomanTok = (t) => /^[IVXLC]{1,7}$/.test(t) && romanToInt(t) > 0;
+
+  function isBoundary(text, pIdx, punct, after) {
+    const c = after[0];
+    if (/\p{Ll}/u.test(c)) return false;
+    if (/[–—―-]/.test(c)) return !/^\p{Ll}/u.test(after.slice(1).replace(/^\s+/, ''));
+    if (punct === '.') {
+      const before = text.slice(0, pIdx);
+      const tok = (/([\p{L}\d]+)$/u.exec(before) || [])[1] || '';
+      const low = tok.toLowerCase();
+      if (NO_SPLIT.has(low)) return false;
+      if (/^\p{Lu}$/u.test(tok)) return false;
+      if (isRomanTok(tok) && /\p{Lu}/u.test(c)) return false;
+      if (/^\d+$/.test(tok)) {
+        const prev = ((/(\p{L}+)\s+\d+$/u.exec(before) || [])[1] || '').toLowerCase();
+        if (isArticle(prev)) return false;
+        if (/\d/.test(c)) return false;
+      } else if (/\d/.test(c) && tok.length < 3) return false;
+    }
+    return true;
+  }
+
+  function trimRange(text, s, e) {
+    while (s < e && /\s/.test(text[s])) s++;
+    while (e > s && /\s/.test(text[e - 1])) e--;
+    return e > s ? { s, e } : null;
+  }
+
+  const MAX_SEG = 240;
+  function splitLong(text, r, out) {
+    const len = r.e - r.s;
+    if (len <= MAX_SEG) { out.push(r); return; }
+    const seg = text.slice(r.s, r.e);
+    const lo = Math.floor(len * 0.3), hi = Math.floor(len * 0.72), mid = len / 2;
+    let best = -1, bestScore = Infinity, m;
+    const re = /([;:])\s|\s[–—]\s|(,)\s/g;
+    while ((m = re.exec(seg))) {
+      const cut = m[0][0] === ' ' ? m.index : m.index + 1;
+      if (cut < lo || cut > hi) continue;
+      const score = Math.abs(cut - mid) / len + (m[1] ? 0 : m[2] ? 0.25 : 0.1);
+      if (score < bestScore) { bestScore = score; best = cut; }
+    }
+    if (best < 0) {
+      const sp = seg.lastIndexOf(' ', Math.floor(mid));
+      if (sp > lo / 2) best = sp; else { out.push(r); return; }
+    }
+    const a = trimRange(text, r.s, r.s + best), b = trimRange(text, r.s + best, r.e);
+    if (a) splitLong(text, a, out);
+    if (b) splitLong(text, b, out);
+  }
+
+  function splitSentences(text) {
+    const res = [];
+    const re = /([.!?…]+)(["'”’»«)\]]*)(?=\s|$)/g;
+    let start = 0, m;
+    while ((m = re.exec(text))) {
+      const endIdx = m.index + m[0].length;
+      const after = text.slice(endIdx).replace(/^\s+/, '');
+      if (!after) break;
+      if (!isBoundary(text, m.index, m[1], after)) continue;
+      const r = trimRange(text, start, endIdx);
+      if (r) res.push(r);
+      start = endIdx;
+    }
+    const r = trimRange(text, start, text.length);
+    if (r) res.push(r);
+    const out = [];
+    res.forEach((x) => splitLong(text, x, out));
+    return out;
+  }
+
+  // Bekezdés → felolvasási egységek; a verssorok (sortörés) külön egységek
+  function segmentBlock(text) {
+    const out = [];
+    const lines = String(text).split('\n');
+    let offset = 0;
+    lines.forEach((line, li) => {
+      const sents = splitSentences(line);
+      sents.forEach((r, k) => out.push({
+        s: offset + r.s, e: offset + r.e,
+        lineEnd: k === sents.length - 1 && li < lines.length - 1,
+      }));
+      offset += line.length + 1;
+    });
+    return out;
+  }
+
+  const api = {
+    normalizeForSpeech, segmentBlock, splitSentences, compileDict, hasSpeakable,
+    cardinal, ordinal, dateDay, numAttach, attach, romanToInt, MONTHS,
+  };
+  root.HuText = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/*! Mesélő · EPUB-olvasó: ZIP, OPF, tartalomjegyzék, szövegkinyerés */
+(function (root) {
+  'use strict';
+
+  class EpubError extends Error {
+    constructor(code) { super(code); this.code = code; }
+  }
+
+  const utf8 = new TextDecoder('utf-8');
+  const sniff = new TextDecoder('windows-1252');
+
+  // ── ZIP (központi könyvtár alapján) ───────────────────────────────────
+  let pakoPromise = null;
+  function loadPako() {
+    if (root.pako) return Promise.resolve(root.pako);
+    if (!pakoPromise) {
+      pakoPromise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js';
+        s.onload = () => (root.pako ? resolve(root.pako) : reject(new EpubError('inflate')));
+        s.onerror = () => reject(new EpubError('inflate'));
+        document.head.appendChild(s);
+      });
+    }
+    return pakoPromise;
+  }
+
+  async function inflateRaw(data) {
+    if (typeof DecompressionStream === 'function') {
+      try {
+        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+      } catch (e) { /* nincs deflate-raw: pako jön */ }
+    }
+    const pako = await loadPako();
+    return pako.inflateRaw(data);
+  }
+
+  async function unzip(buffer) {
+    const u8 = new Uint8Array(buffer);
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    const len = u8.length;
+    if (len < 22) throw new EpubError('notzip');
+    let eocd = -1;
+    for (let i = len - 22; i >= Math.max(0, len - 65557); i--) {
+      if (u8[i] === 0x50 && u8[i + 1] === 0x4b && u8[i + 2] === 0x05 && u8[i + 3] === 0x06) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new EpubError('notzip');
+    let count = dv.getUint16(eocd + 10, true);
+    let cdOff = dv.getUint32(eocd + 16, true);
+    if (cdOff === 0xffffffff || count === 0xffff) {
+      const loc = eocd - 20;
+      if (loc >= 0 && dv.getUint32(loc, true) === 0x07064b50) {
+        const z = Number(dv.getBigUint64(loc + 8, true));
+        if (z + 56 <= len && dv.getUint32(z, true) === 0x06064b50) {
+          count = Number(dv.getBigUint64(z + 32, true));
+          cdOff = Number(dv.getBigUint64(z + 48, true));
+        }
+      }
+    }
+    const entries = new Map();
+    let p = cdOff;
+    for (let k = 0; k < count && p + 46 <= len; k++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      const flags = dv.getUint16(p + 8, true);
+      const method = dv.getUint16(p + 10, true);
+      let csize = dv.getUint32(p + 20, true);
+      let usize = dv.getUint32(p + 24, true);
+      const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+      let lho = dv.getUint32(p + 42, true);
+      const name = utf8.decode(u8.subarray(p + 46, p + 46 + nlen));
+      if (csize === 0xffffffff || usize === 0xffffffff || lho === 0xffffffff) {
+        let q = p + 46 + nlen;
+        const qe = q + xlen;
+        while (q + 4 <= qe) {
+          const id = dv.getUint16(q, true), sz = dv.getUint16(q + 2, true);
+          if (id === 1) {
+            let r = q + 4;
+            if (usize === 0xffffffff) { usize = Number(dv.getBigUint64(r, true)); r += 8; }
+            if (csize === 0xffffffff) { csize = Number(dv.getBigUint64(r, true)); r += 8; }
+            if (lho === 0xffffffff) lho = Number(dv.getBigUint64(r, true));
+            break;
+          }
+          q += 4 + sz;
+        }
+      }
+      if (!name.endsWith('/')) entries.set(name, { name, flags, method, csize, lho });
+      p += 46 + nlen + xlen + clen;
+    }
+    if (!entries.size) throw new EpubError('notzip');
+    const lower = new Map();
+    for (const n of entries.keys()) lower.set(n.toLowerCase(), n);
+    const find = (n) => entries.get(n) || entries.get(lower.get(String(n || '').toLowerCase()));
+
+    return {
+      names: () => [...entries.keys()],
+      has: (n) => !!find(n),
+      async bytes(n) {
+        const e = find(n);
+        if (!e) return null;
+        if (e.flags & 1) throw new EpubError('drm');
+        const h = e.lho;
+        if (h + 30 > len || dv.getUint32(h, true) !== 0x04034b50) throw new EpubError('notzip');
+        const start = h + 30 + dv.getUint16(h + 26, true) + dv.getUint16(h + 28, true);
+        const data = u8.subarray(start, start + e.csize);
+        if (e.method === 0) return data;
+        if (e.method === 8) return inflateRaw(data);
+        throw new EpubError('notzip');
+      },
+      async text(n) {
+        const b = await this.bytes(n);
+        return b ? decodeText(b) : null;
+      },
+    };
+  }
+
+  // ── Kódolás: régi magyar e-könyvek gyakran ISO-8859-2 / Windows-1250 ──
+  function decodeText(bytes) {
+    if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return utf8.decode(bytes.subarray(3));
+    if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
+    if (bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder('utf-16be').decode(bytes.subarray(2));
+    const head = sniff.decode(bytes.subarray(0, 1024));
+    const m = /<\?xml[^>]*encoding\s*=\s*["']([\w.:-]+)["']/i.exec(head) || /<meta[^>]*charset\s*=\s*["']?([\w.:-]+)/i.exec(head);
+    const label = (m ? m[1] : 'utf-8').toLowerCase();
+    if (label === 'utf-8' || label === 'utf8') {
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+      catch (e) { return new TextDecoder('windows-1250').decode(bytes); }
+    }
+    try { return new TextDecoder(label).decode(bytes); } catch (e) { return utf8.decode(bytes); }
+  }
+
+  // ── XML segédek ───────────────────────────────────────────────────────
+  const hasErr = (d) => !d || d.getElementsByTagName('parsererror').length > 0;
+  function parseXML(str) {
+    if (str == null) return null;
+    try {
+      const d = new DOMParser().parseFromString(str, 'application/xml');
+      if (!hasErr(d)) return d;
+    } catch (e) { /* tovább */ }
+    try { return new DOMParser().parseFromString(str, 'text/html'); } catch (e) { return null; }
+  }
+  function parseXHTML(str) {
+    let d = null;
+    try { d = new DOMParser().parseFromString(str, 'application/xhtml+xml'); } catch (e) { d = null; }
+    if (hasErr(d)) d = new DOMParser().parseFromString(str, 'text/html');
+    return d;
+  }
+  const lname = (el) => String(el.localName || el.nodeName || '').toLowerCase().replace(/^.*:/, '');
+  function els(doc, name) {
+    const out = [];
+    for (const e of doc.getElementsByTagName('*')) if (lname(e) === name) out.push(e);
+    return out;
+  }
+  const kids = (el, name) => [...el.children].filter((c) => lname(c) === name);
+  const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+
+  // ── Útvonalak ─────────────────────────────────────────────────────────
+  const dirOf = (p) => { const i = p.lastIndexOf('/'); return i < 0 ? '' : p.slice(0, i + 1); };
+  const safeDecode = (s) => { try { return decodeURIComponent(s); } catch (e) { return s; } };
+  function resolve(fromPath, href) {
+    const h = String(href || '').trim();
+    const i = h.indexOf('#');
+    const raw = i < 0 ? h : h.slice(0, i);
+    const frag = i < 0 ? '' : safeDecode(h.slice(i + 1));
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return { path: null, frag };
+    if (!raw) return { path: fromPath, frag };
+    const parts = ((raw.startsWith('/') ? '' : dirOf(fromPath)) + safeDecode(raw)).split('/');
+    const out = [];
+    for (const seg of parts) { if (seg === '..') out.pop(); else if (seg && seg !== '.') out.push(seg); }
+    return { path: out.join('/'), frag };
+  }
+
+  // ── Szövegkinyerés ────────────────────────────────────────────────────
+  const BLOCK = new Set(['address', 'article', 'aside', 'blockquote', 'body', 'caption', 'center', 'dd', 'details',
+    'dialog', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5',
+    'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'section', 'summary', 'table',
+    'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul']);
+  const SKIP = new Set(['script', 'style', 'head', 'title', 'svg', 'math', 'rt', 'rp', 'img', 'image', 'audio',
+    'video', 'object', 'iframe', 'noscript', 'template', 'button', 'select', 'textarea', 'input', 'canvas', 'map',
+    'embed', 'source', 'track', 'picture', 'link', 'meta']);
+  const OPS = 'http://www.idpf.org/2007/ops';
+  const typeOf = (el) => ((el.getAttribute('epub:type') || (el.getAttributeNS && el.getAttributeNS(OPS, 'type')) || '') +
+    ' ' + (el.getAttribute('role') || '')).toLowerCase();
+  const isNoteRef = (el) => /\b(?:noteref|doc-noteref)\b/.test(typeOf(el));
+  const isNoteBody = (el) => /\b(?:footnotes?|endnotes?|rearnotes?|doc-footnote|doc-endnotes?|pagebreak|doc-pagebreak)\b/.test(typeOf(el));
+  const isHidden = (el) => el.hasAttribute('hidden') || /display\s*:\s*none/i.test(el.getAttribute('style') || '');
+  const MARK_BR = '';
+
+  function isMarker(el, tag) {
+    const t = el.textContent || '';
+    if (tag === 'sup' && /^[\s\d*†‡§,.\-–[\]()]{1,8}$/.test(t)) return true;
+    if (tag === 'a' && /#/.test(el.getAttribute('href') || '') && /^[\s\d*†‡[\]()]{1,6}$/.test(t)) return true;
+    return false;
+  }
+
+  function containsBlock(el) {
+    for (const c of el.children) {
+      if (BLOCK.has(lname(c)) || containsBlock(c)) return true;
+    }
+    return false;
+  }
+
+  function cleanInline(t, fixHu) {
+    let s = t.replace(/\s+/g, ' ')
+      .replace(new RegExp(` ?${MARK_BR} ?`, 'g'), '\n')
+      .replace(/\n{2,}/g, '\n')
+      .replace(/^\n+|\n+$/g, '')
+      .trim();
+    if (fixHu) s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
+    return s.normalize('NFC');
+  }
+
+  function extractBlocks(doc, fixHu) {
+    const body = doc.body || doc.getElementsByTagName('body')[0] || doc.documentElement;
+    const blocks = [];
+    const ids = new Map();
+    let pending = [];
+
+    function inline(node, acc) {
+      for (const n of node.childNodes) {
+        if (n.nodeType === 3 || n.nodeType === 4) { acc.t += n.nodeValue; continue; }
+        if (n.nodeType !== 1) continue;
+        const t = lname(n);
+        if (SKIP.has(t) || isHidden(n) || isNoteBody(n)) continue;
+        if (t === 'br') { acc.t += MARK_BR; continue; }
+        if (isNoteRef(n) || isMarker(n, t)) continue;
+        if (n.id) acc.ids.push(n.id);
+        if (t === 'a' && n.getAttribute('name')) acc.ids.push(n.getAttribute('name'));
+        inline(n, acc);
+      }
+    }
+
+    function emit(type, acc, tag) {
+      const text = cleanInline(acc.t, fixHu);
+      if (!text) { pending.push(...acc.ids); return; }
+      const idx = blocks.length;
+      for (const id of pending.concat(acc.ids)) if (!ids.has(id)) ids.set(id, idx);
+      pending = [];
+      if (!/[\p{L}\p{N}]/u.test(text)) {
+        if (blocks.length && blocks[blocks.length - 1].type === 'sep') blocks[blocks.length - 1].text = text;
+        else blocks.push({ type: 'sep', text });
+        return;
+      }
+      if (type === 'h') blocks.push({ type: 'h', level: /^h[12]$/.test(tag) ? 1 : 2, text });
+      else blocks.push({ type: 'p', text });
+    }
+
+    function walk(container) {
+      let acc = { t: '', ids: [] };
+      const flush = () => {
+        if (acc.t.trim()) emit('p', acc);
+        else pending.push(...acc.ids);
+        acc = { t: '', ids: [] };
+      };
+      for (const n of container.childNodes) {
+        if (n.nodeType === 3 || n.nodeType === 4) { acc.t += n.nodeValue; continue; }
+        if (n.nodeType !== 1) continue;
+        const t = lname(n);
+        if (SKIP.has(t) || isHidden(n) || isNoteBody(n)) continue;
+        if (t === 'br') { acc.t += MARK_BR; continue; }
+        const blockish = BLOCK.has(t) || containsBlock(n);
+        if (!blockish) {
+          if (isNoteRef(n) || isMarker(n, t)) continue;
+          if (n.id) acc.ids.push(n.id);
+          inline(n, acc);
+          continue;
+        }
+        flush();
+        if (n.id) pending.push(n.id);
+        if (t === 'hr') {
+          if (blocks.length && blocks[blocks.length - 1].type !== 'sep') blocks.push({ type: 'sep', text: '' });
+          continue;
+        }
+        if (containsBlock(n)) { walk(n); continue; }
+        const a = { t: '', ids: [] };
+        inline(n, a);
+        emit(/^h[1-6]$/.test(t) ? 'h' : 'p', a, t);
+      }
+      flush();
+    }
+
+    if (body) walk(body);
+    for (const id of pending) if (!ids.has(id)) ids.set(id, Math.max(0, blocks.length - 1));
+    while (blocks.length && blocks[0].type === 'sep') blocks.shift();
+    return { blocks, ids };
+  }
+
+  // ── Tartalomjegyzék ───────────────────────────────────────────────────
+  function parseNav(doc, navPath) {
+    const navs = [...doc.getElementsByTagName('*')].filter((e) => lname(e) === 'nav');
+    const nav = navs.find((n) => /\btoc\b/.test(typeOf(n))) || navs[0];
+    if (!nav) return [];
+    const ol = kids(nav, 'ol')[0] || [...nav.getElementsByTagName('*')].find((e) => lname(e) === 'ol');
+    const out = [];
+    (function walkOl(list, level) {
+      if (!list) return;
+      for (const li of kids(list, 'li')) {
+        const a = [...li.children].find((c) => lname(c) === 'a' || lname(c) === 'span');
+        const title = a ? clean(a.textContent) : '';
+        const href = a && lname(a) === 'a' ? a.getAttribute('href') : null;
+        if (title && href) { const r = resolve(navPath, href); out.push({ title, path: r.path, frag: r.frag, level }); }
+        walkOl(kids(li, 'ol')[0], level + 1);
+      }
+    })(ol, 0);
+    return out;
+  }
+
+  function parseNcx(doc, ncxPath) {
+    const out = [];
+    const navMap = els(doc, 'navmap')[0];
+    (function walk(node, level) {
+      if (!node) return;
+      for (const np of kids(node, 'navpoint')) {
+        const label = kids(np, 'navlabel')[0];
+        const content = kids(np, 'content')[0];
+        const title = label ? clean(label.textContent) : '';
+        const src = content && content.getAttribute('src');
+        if (title && src) { const r = resolve(ncxPath, src); out.push({ title, path: r.path, frag: r.frag, level }); }
+        walk(np, level + 1);
+      }
+    })(navMap, 0);
+    return out;
+  }
+
+  function hash(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return (h >>> 0).toString(36);
+  }
+
+  const FONT_OBFUSCATION = /idpf\.org\/2008\/embedding|ns\.adobe\.com\/pdf\/enc#RC/i;
+
+  // ── Megnyitás ─────────────────────────────────────────────────────────
+  async function open(buffer, opts) {
+    const o = opts || {};
+    const zip = await unzip(buffer);
+
+    // DRM: tartalmi fájlok titkosítása (a betűtípus-elrejtés nem számít annak)
+    const encrypted = new Set();
+    const encXml = await zip.text('META-INF/encryption.xml');
+    if (encXml) {
+      const d = parseXML(encXml);
+      if (d) {
+        for (const ed of els(d, 'encrypteddata')) {
+          const alg = (els(ed, 'encryptionmethod')[0] || ed).getAttribute('Algorithm') || '';
+          const ref = els(ed, 'cipherreference')[0];
+          const uri = ref && ref.getAttribute('URI');
+          if (uri && !FONT_OBFUSCATION.test(alg)) encrypted.add(resolve('', uri).path);
+        }
+      }
+    }
+    const drmFiles = zip.has('META-INF/rights.xml') || zip.has('META-INF/license.lcpl');
+    if ([...encrypted].some((p) => /\.x?html?$/i.test(p))) throw new EpubError('drm');
+
+    let opfPath = null;
+    const container = parseXML(await zip.text('META-INF/container.xml'));
+    if (container) {
+      const rf = els(container, 'rootfile').find((e) => /oebps-package|opf/i.test(e.getAttribute('media-type') || 'opf'));
+      opfPath = rf && rf.getAttribute('full-path');
+    }
+    if (!opfPath || !zip.has(opfPath)) opfPath = zip.names().find((n) => /\.opf$/i.test(n)) || null;
+    if (!opfPath) throw new EpubError('noopf');
+    const opf = parseXML(await zip.text(opfPath));
+    if (!opf) throw new EpubError('noopf');
+
+    const meta = (name) => clean((els(opf, name)[0] || {}).textContent);
+    const title = meta('title') || String(o.fileName || '').replace(/\.epub$/i, '') || 'Névtelen könyv';
+    const author = els(opf, 'creator').slice(0, 3).map((e) => clean(e.textContent)).filter(Boolean).join(', ');
+    const lang = meta('language');
+    const identifier = meta('identifier');
+    const fixHu = !lang || /^hu/i.test(lang);
+
+    const manifest = new Map();
+    for (const it of els(opf, 'item')) {
+      const id = it.getAttribute('id'), href = it.getAttribute('href');
+      if (!id || !href) continue;
+      manifest.set(id, {
+        id, path: resolve(opfPath, href).path,
+        type: (it.getAttribute('media-type') || '').toLowerCase(),
+        props: it.getAttribute('properties') || '',
+      });
+    }
+    const spineEl = els(opf, 'spine')[0];
+    const spine = els(opf, 'itemref').map((r) => ({
+      idref: r.getAttribute('idref'), linear: (r.getAttribute('linear') || 'yes').toLowerCase() !== 'no',
+    }));
+    const items = [...manifest.values()];
+    const navItem = items.find((i) => /\bnav\b/.test(i.props));
+    const ncxItem = (spineEl && manifest.get(spineEl.getAttribute('toc'))) || items.find((i) => i.type === 'application/x-dtbncx+xml');
+    let coverItem = items.find((i) => /\bcover-image\b/.test(i.props));
+    if (!coverItem) {
+      const cm = els(opf, 'meta').find((m) => (m.getAttribute('name') || '').toLowerCase() === 'cover');
+      if (cm) coverItem = manifest.get(cm.getAttribute('content'));
+    }
+    if (!coverItem) coverItem = items.find((i) => /^image\//.test(i.type) && /cover/i.test(i.id + i.path));
+    if (coverItem && !/^image\//.test(coverItem.type)) coverItem = null;
+
+    let order = spine.filter((s) => s.linear);
+    if (!order.length) order = spine;
+    const chapters = [];
+    const pathToChapter = new Map();
+    const waiting = [];
+    for (const s of order) {
+      const item = manifest.get(s.idref);
+      if (!item || !/html|xml/.test(item.type) || item === navItem) continue;
+      if (encrypted.has(item.path)) throw new EpubError('drm');
+      const bytes = await zip.bytes(item.path);
+      if (!bytes) continue;
+      const doc = parseXHTML(decodeText(bytes));
+      const { blocks, ids } = extractBlocks(doc, fixHu);
+      if (!blocks.some((b) => b.type !== 'sep')) { waiting.push(item.path); continue; }
+      if (!chapters.length) {
+        const sample = blocks.map((b) => b.text).join(' ').slice(0, 4000);
+        const junk = (sample.match(/[\uFFFD\u0000-\u0008\u000E-\u001F]/g) || []).length;
+        if (sample.length > 50 && junk / sample.length > 0.05) throw new EpubError('drm');
+      }
+      const idx = chapters.length;
+      waiting.forEach((pth) => pathToChapter.set(pth, idx));
+      waiting.length = 0;
+      pathToChapter.set(item.path, idx);
+      chapters.push({ path: item.path, blocks, ids, title: '' });
+    }
+    waiting.forEach((pth) => pathToChapter.set(pth, Math.max(0, chapters.length - 1)));
+    if (!chapters.length) throw new EpubError(encXml || drmFiles ? 'drm' : 'notext');
+
+    let raw = [];
+    try {
+      if (navItem) {
+        const b = await zip.bytes(navItem.path);
+        if (b) raw = parseNav(parseXHTML(decodeText(b)), navItem.path);
+      }
+      if (!raw.length && ncxItem) {
+        const d = parseXML(await zip.text(ncxItem.path));
+        if (d) raw = parseNcx(d, ncxItem.path);
+      }
+    } catch (e) { raw = []; }
+
+    const toc = [];
+    for (const e of raw) {
+      if (!e.path || !pathToChapter.has(e.path)) continue;
+      const ch = pathToChapter.get(e.path);
+      const block = e.frag && chapters[ch].path === e.path ? (chapters[ch].ids.get(e.frag) || 0) : 0;
+      toc.push({ title: e.title, ch, block, level: Math.min(e.level, 3) });
+    }
+
+    chapters.forEach((c, i) => {
+      const fromToc = toc.filter((t) => t.ch === i).sort((a, b) => a.block - b.block || a.level - b.level)[0];
+      const head = c.blocks.find((b) => b.type === 'h');
+      c.title = (fromToc && fromToc.title) || (head && head.text.replace(/\n/g, ' ').slice(0, 90)) || `${i + 1}. szakasz`;
+    });
+
+    let cover = null;
+    if (coverItem) {
+      try {
+        const b = await zip.bytes(coverItem.path);
+        if (b) cover = new Blob([b], { type: coverItem.type });
+      } catch (e) { cover = null; }
+    }
+
+    const chars = chapters.reduce((n, c) => n + c.blocks.reduce((m, b) => m + (b.type === 'sep' ? 0 : b.text.length), 0), 0);
+    return {
+      id: 'b' + hash([identifier, title, author, chars].join('|')),
+      title, author, lang,
+      chapters: chapters.map((c) => ({ title: c.title, blocks: c.blocks })),
+      toc: toc.length ? toc : chapters.map((c, i) => ({ title: c.title, ch: i, block: 0, level: 0 })),
+      cover,
+    };
+  }
+
+  root.Epub = { open, EpubError, _internal: { unzip, decodeText, extractBlocks, resolve } };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/*! Mesélő · felolvasó alkalmazás */
+(function () {
+  'use strict';
+
+  const H = window.HuText;
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const now = () => performance.now();
+  const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const huNum = (x, min, max) => x.toLocaleString('hu-HU', { minimumFractionDigits: min, maximumFractionDigits: max });
+
+  // ── Tárolás: privát ablakban, tiltott tárhellyel is működjön ─────────
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* nincs tárhely */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* nincs tárhely */ } },
+  };
+
+  const DB = {
+    _db: null,
+    open() {
+      if (!this._db) {
+        this._db = new Promise((resolve, reject) => {
+          try {
+            const r = indexedDB.open('meselo', 1);
+            r.onupgradeneeded = () => r.result.createObjectStore('books', { keyPath: 'id' });
+            r.onsuccess = () => resolve(r.result);
+            r.onerror = () => reject(r.error);
+            r.onblocked = () => reject(new Error('blocked'));
+          } catch (e) { reject(e); }
+        });
+      }
+      return this._db;
+    },
+    async run(mode, fn) {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('books', mode);
+        const req = fn(tx.objectStore('books'));
+        tx.oncomplete = () => resolve(req ? req.result : undefined);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      });
+    },
+    async put(rec) { try { await this.run('readwrite', (s) => s.put(rec)); return true; } catch (e) { return false; } },
+    async get(id) { try { return await this.run('readonly', (s) => s.get(id)); } catch (e) { return null; } },
+    async all() { try { return (await this.run('readonly', (s) => s.getAll())) || []; } catch (e) { return []; } },
+    async del(id) { try { await this.run('readwrite', (s) => s.delete(id)); } catch (e) { /* */ } },
+    async clear() { try { await this.run('readwrite', (s) => s.clear()); } catch (e) { /* */ } },
+  };
+
+  // ── Állapot ───────────────────────────────────────────────────────────
+  const NEURAL_ID = 'neural:imre';
+  const DEFAULTS = { v: 2, voice: NEURAL_ID, rate: 1, pitch: 1, pause: 'mid', font: 1, showSpoken: true, dict: '', cps: 15, allVoices: false };
+  const savedSettings = LS.get('meselo:settings', {});
+  if ((savedSettings.v || 1) < 2) {
+    // az első változat „automatikus” böngészőhangja helyett a beépített Imre hang az alapértelmezett
+    if (!savedSettings.voice) savedSettings.voice = NEURAL_ID;
+    savedSettings.v = 2;
+  }
+  const S = {
+    set: Object.assign({}, DEFAULTS, savedSettings),
+    book: null, ch: 0, segs: [], seg: 0,
+    playing: false, token: 0, timer: 0, watchdog: 0, keep: 0, errors: 0,
+    voice: null, huVoices: [], allVoices: [],
+    curEl: null, userScrollAt: -1e9, wl: null, coverUrl: null,
+    sleep: { mode: 'off', minutes: 0, until: 0 }, sleepTick: 0,
+    dict: [],
+  };
+  S.dict = H.compileDict(S.set.dict);
+  const saveSettings = () => LS.set('meselo:settings', S.set);
+
+  const synth = (() => { try { return window.speechSynthesis || null; } catch (e) { return null; } })();
+  const canSpeak = !!(synth && typeof window.SpeechSynthesisUtterance === 'function');
+
+  const PAUSE = { sent: 160, line: 420, head: 950, sep: 1400, para: { short: 300, mid: 650, long: 1100 } };
+  const pauseMs = (kind) => Math.round((kind === 'para' ? (PAUSE.para[S.set.pause] || 650) : (PAUSE[kind] || 200)) / clamp(S.set.rate, 0.5, 2));
+
+  // ── Beépített neurális hang (Imre): a böngészőben fut, egy Web Workerben ──
+  const Neural = {
+    manifest: window.MESELO_TTS || null,
+    worker: null,
+    state: 'idle', // idle | loading | ready | failed
+    stage: 'download',
+    loaded: 0,
+    total: 0,
+    error: null,
+    readyPromise: null,
+    ctx: null,
+    src: null,
+    nextId: 1,
+    jobs: new Map(),
+    cache: new Map(),
+    get available() {
+      return !!(this.manifest && typeof Worker === 'function' && typeof WebAssembly === 'object' &&
+        (window.AudioContext || window.webkitAudioContext));
+    },
+    get totalMB() {
+      return this.manifest ? Math.round(this.manifest.files.reduce((n, f) => n + f.size, 0) / 1048576) : 0;
+    },
+    ensureCtx() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!this.ctx) { try { this.ctx = new AC(); } catch (e) { return null; } }
+      if (this.ctx.state !== 'running') { try { this.ctx.resume().catch(() => {}); } catch (e) { /* */ } }
+      // a hang egy médiaelemen át szól: így a telefon zárolt képernyővel is játssza, és megjelennek a vezérlők
+      if (!this.el && this.ctx.createMediaStreamDestination && typeof Audio === 'function') {
+        try {
+          this.dest = this.ctx.createMediaStreamDestination();
+          this.el = new Audio();
+          this.el.srcObject = this.dest.stream;
+        } catch (e) { this.el = null; this.dest = null; }
+      }
+      if (this.el && this.el.paused) {
+        try {
+          const p = this.el.play();
+          if (p && p.then) p.then(() => { this.elOk = true; }, () => { this.elOk = false; });
+        } catch (e) { this.elOk = false; }
+      }
+      return this.ctx;
+    },
+    out() { return this.elOk && this.dest ? this.dest : this.ctx.destination; },
+    idle() { if (this.el && !this.el.paused) { try { this.el.pause(); } catch (e) { /* */ } } },
+    start() {
+      if (this.state === 'ready') return Promise.resolve();
+      if (this.state === 'failed') return Promise.reject(this.error);
+      if (this.readyPromise) return this.readyPromise;
+      this.state = 'loading';
+      this.stage = 'download';
+      renderEngine();
+      this.readyPromise = new Promise((resolve, reject) => {
+        const fail = (code, msg) => {
+          if (this.state === 'failed') return;
+          this.state = 'failed';
+          this.error = { code, message: msg };
+          this.readyPromise = null;
+          try { if (this.worker) this.worker.terminate(); } catch (e) { /* */ }
+          this.worker = null;
+          for (const j of this.jobs.values()) j.reject({ code });
+          this.jobs.clear();
+          this.cache.clear();
+          renderEngine();
+          reject(this.error);
+        };
+        let w;
+        try { w = new Worker(new URL('tts/worker.mjs', document.baseURI), { type: 'module' }); }
+        catch (e) { fail('engine', String(e && e.message)); return; }
+        this.worker = w;
+        w.onerror = (ev) => { try { ev.preventDefault(); } catch (e) { /* */ } fail('engine', ev && ev.message); };
+        w.onmessageerror = () => fail('engine', 'messageerror');
+        w.onmessage = (ev) => {
+          const m = ev.data || {};
+          if (m.type === 'progress') { this.loaded = m.loaded; this.total = m.total; renderEngine(); }
+          else if (m.type === 'stage') { this.stage = m.stage; renderEngine(); }
+          else if (m.type === 'ready') { this.state = 'ready'; renderEngine(); resolve(); }
+          else if (m.type === 'fatal') fail(m.code || 'engine', m.message);
+          else if (m.type === 'audio' || m.type === 'error') {
+            const j = this.jobs.get(m.id);
+            if (!j) return;
+            this.jobs.delete(m.id);
+            if (m.type === 'error') { j.reject({ code: 'synth', message: m.message }); return; }
+            const ctx = this.ensureCtx();
+            if (!ctx) { j.reject({ code: 'audio' }); return; }
+            if (window.__meseloStats) window.__meseloStats.push({ ms: m.ms, sec: m.pcm.length / m.sampleRate });
+            const buf = ctx.createBuffer(1, m.pcm.length, m.sampleRate);
+            buf.getChannelData(0).set(m.pcm);
+            j.resolve({ buffer: buf, ms: m.ms });
+          }
+        };
+        w.postMessage({ type: 'init', manifest: this.manifest });
+      });
+      return this.readyPromise;
+    },
+    get(text) {
+      const key = `${S.set.rate}|${text}`;
+      let p = this.cache.get(key);
+      if (p) { this.cache.delete(key); this.cache.set(key, p); return p; }
+      p = new Promise((resolve, reject) => {
+        const id = this.nextId++;
+        this.jobs.set(id, { resolve, reject, key });
+        this.worker.postMessage({ type: 'synth', id, text, lengthScale: 1 / clamp(S.set.rate, 0.5, 2) });
+      });
+      p.catch(() => { if (this.cache.get(key) === p) this.cache.delete(key); });
+      this.cache.set(key, p);
+      while (this.cache.size > 16) this.cache.delete(this.cache.keys().next().value);
+      return p;
+    },
+    flush(keepTexts) {
+      if (!this.worker) return;
+      const keepKeys = new Set((keepTexts || []).map((t) => `${S.set.rate}|${t}`));
+      const keepIds = [];
+      for (const [id, j] of this.jobs) {
+        if (keepKeys.has(j.key)) { keepIds.push(id); continue; }
+        this.jobs.delete(id);
+        if (this.cache.get(j.key)) this.cache.delete(j.key);
+        j.reject({ code: 'canceled' });
+      }
+      this.worker.postMessage({ type: 'flush', keep: keepIds });
+    },
+    clearCache() { this.flush([]); this.cache.clear(); },
+    play(buffer, onend) {
+      this.stopSource();
+      const ctx = this.ensureCtx();
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(this.out());
+      src.onended = () => { if (this.src === src) { this.src = null; onend(); } };
+      this.src = src;
+      src.start();
+    },
+    stopSource() {
+      const s = this.src;
+      this.src = null;
+      if (s) { try { s.onended = null; s.stop(); s.disconnect(); } catch (e) { /* */ } }
+    },
+    async isCached() {
+      if (!this.manifest || typeof caches === 'undefined') return false;
+      try {
+        const c = await caches.open(this.manifest.cache);
+        const last = this.manifest.files[this.manifest.files.length - 1];
+        return !!(await c.match(new URL('tts/' + last.path, document.baseURI).href));
+      } catch (e) { return false; }
+    },
+  };
+  const useNeural = () => S.set.voice === NEURAL_ID && Neural.available && Neural.state !== 'failed';
+  const canPlay = () => useNeural() || canSpeak;
+
+  // ── Mintakönyv ────────────────────────────────────────────────────────
+  function sampleBook() {
+    const p = (text, cls) => ({ type: 'p', text, cls });
+    const label = (text) => ({ type: 'h', level: 3, text });
+    const h1 = (text) => ({ type: 'h', level: 1, text });
+    const h2 = (text) => ({ type: 'h', level: 2, text });
+    const chapters = [
+      { title: 'Így működik', blocks: [
+        label('Első fejezet'), h1('Így működik'),
+        p('Ez egy rövid mintakönyv. Nyomd meg a lejátszás gombot, és a Mesélő mondatról mondatra felolvassa, a kiemelő pedig mindig ott jár, ahol a hang.'),
+        p('Ha bármelyik mondatra rákattintasz, onnan folytatja. A nyilakkal mondatonként léptethetsz, a szóköz pedig elindítja és megállítja a felolvasást.'),
+        p('Saját könyvet a Könyvtár gombbal nyithatsz meg, vagy egyszerűen húzd rá az EPUB-fájlt erre az oldalra. A könyv nem töltődik fel sehová: a felolvasás a böngésződben történik, és a Mesélő megjegyzi, hol hagytad abba.'),
+        p('A felolvasó Imre hangján szól. Ez a hang a böngésződben fut, ezért bármelyik böngészőben és telefonon ugyanígy hangzik. Első indításkor egyszer le kell tölteni (kb. 72 MB), utána internet nélkül is működik. A Beállításokban a böngésző saját hangjai közül is választhatsz, és ott állíthatod a tempót is.'),
+      ] },
+      { title: 'Számok és rövidítések', blocks: [
+        label('Második fejezet'), h1('Számok és rövidítések'),
+        p('A számokat, a dátumokat és a rövidítéseket nem úgy mondjuk ki, ahogy leírjuk. A Mesélő felolvasás előtt átírja őket, a lejátszó fölötti sorban pedig azt is látod, pontosan mit mond.'),
+        p('1848. március 15-én reggel a pesti ifjak a Pilvax kávéházból indultak el, és délre a 12 pontot már az egész város ismerte.'),
+        p('XIV. Lajos 72 évig uralkodott, ami a 17–18. században is ritkaságnak számított.'),
+        p('Dr. Kovács Éva kb. 3,5 km-re lakik a II. kerülettől, de a 8:30-kor induló busszal 20 perc alatt beér.'),
+        p('A könyv ára 4 990 Ft volt, de 25%-kal olcsóbban, 3 742 forintért vettem meg.'),
+        p('Az ún. tihanyi alapítólevél Kr. u. 1055-ből való; ez a legrégebbi olyan fennmaradt oklevél, amelyben magyar szavak is olvashatók.'),
+        p('A 2000-es évek elején még kazettáról hallgattuk a hangoskönyveket, ma már 2 kattintás az egész.'),
+      ] },
+      { title: 'Párbeszéd', blocks: [
+        label('Harmadik fejezet'), h1('Párbeszéd'),
+        p('A magyar könyvekben a párbeszédet gondolatjel vezeti be. A Mesélő ezeket nem mondja ki, csak rövid szünetet tart, ahogy egy jó felolvasó is tenné.'),
+        p('– Hallod ezt? – kérdezte Anna, és letette a könyvet.'),
+        p('– Hallom – felelte a nagyapja. – Mintha valaki a szomszéd szobában olvasna fel.'),
+        p('– Pedig csak a gép az. Azt mondtam neki, hogy a gondolatjeleknél tartson szünetet.'),
+        p('– Ügyes gép – nevetett az öreg. – Kérdezd meg, tud-e verset is mondani!'),
+      ] },
+      { title: 'Egy vers', blocks: [
+        label('Negyedik fejezet'), h1('Egy vers'),
+        p('Versnél a sorok végén is megáll egy pillanatra, ahogy a költő tördelte.'),
+        h2('Petőfi Sándor: Szeptember végén (részlet)'),
+        p(['Még nyílnak a völgyben a kerti virágok,', 'Még zöldel a nyárfa az ablak előtt,',
+          'De látod amottan a téli világot?', 'Már hó takará el a bérci tetőt.',
+          'Még ifjú szivemben a lángsugarú nyár', 'S még benne virít az egész kikelet,',
+          'De íme sötét hajam őszbe vegyül már,', 'A tél dere már megüté fejemet.'].join('\n')),
+        p('Koltó, 1847. szeptember', 'dateline'),
+      ] },
+    ];
+    return {
+      id: 'sample', isSample: true, title: 'Ismerkedés a Mesélővel', author: 'Bemutató', lang: 'hu',
+      chapters, toc: chapters.map((c, i) => ({ title: c.title, ch: i, block: 0, level: 0 })), cover: null,
+    };
+  }
+
+  // ── Könyv előkészítése ────────────────────────────────────────────────
+  function prepareBook(book) {
+    let start = 0;
+    book.chapters.forEach((c) => {
+      let cum = 0;
+      c.blockCum = c.blocks.map((b) => { const v = cum; if (b.type !== 'sep') cum += b.text.length; return v; });
+      c.chars = cum;
+      c.start = start;
+      start += cum;
+    });
+    book.total = Math.max(1, start);
+    book.toc.forEach((e) => { const c = book.chapters[e.ch]; e.pos = c.start + (c.blockCum[e.block] || 0); });
+    book.tocSorted = book.toc.slice().sort((a, b) => a.pos - b.pos);
+    return book;
+  }
+
+  const curPos = () => {
+    if (!S.book) return 0;
+    const c = S.book.chapters[S.ch];
+    const sg = S.segs[S.seg];
+    return c.start + (sg ? sg.cum : 0);
+  };
+  function currentEntry(pos) {
+    let cur = null;
+    for (const e of S.book.tocSorted) { if (e.pos <= pos + 0.5) cur = e; else break; }
+    return cur || S.book.tocSorted[0] || null;
+  }
+  const secsFor = (chars) => chars / (clamp(S.set.cps, 6, 40) * S.set.rate);
+  function fmtDur(sec, approx) {
+    if (sec < 45) return approx ? 'kevesebb mint 1 perc' : '< 1 perc';
+    const m = Math.round(sec / 60);
+    const pre = approx ? 'kb. ' : '';
+    if (m < 60) return `${pre}${m} perc`;
+    const h = Math.floor(m / 60), mm = m % 60;
+    return `${pre}${h} óra${mm ? ' ' + mm + ' perc' : ''}`;
+  }
+
+  // ── Megjelenítés ──────────────────────────────────────────────────────
+  function appendGap(el, gap) {
+    gap.split('\n').forEach((t, i) => {
+      if (i) el.appendChild(document.createElement('br'));
+      if (t) el.appendChild(document.createTextNode(t));
+    });
+  }
+
+  function renderChapter() {
+    const chap = S.book.chapters[S.ch];
+    const art = $('#chapter');
+    art.textContent = '';
+    const frag = document.createDocumentFragment();
+    const segs = [];
+    chap.blocks.forEach((b, bi) => {
+      let el;
+      if (b.type === 'h') {
+        el = document.createElement(b.level === 1 ? 'h2' : 'h3');
+        el.className = b.level === 1 ? 'h1' : b.level === 3 ? 'h3' : 'h2';
+      } else el = document.createElement('p');
+      if (b.type === 'sep') {
+        el.className = 'sep';
+        el.textContent = b.text || '* * *';
+        segs.push({ b: bi, text: '', kind: 'sep', pause: 'sep', el, cum: chap.blockCum[bi] });
+        frag.appendChild(el);
+        return;
+      }
+      if (b.text.includes('\n')) el.classList.add('verse');
+      if (b.cls) el.classList.add(b.cls);
+      const parts = H.segmentBlock(b.text);
+      let pos = 0;
+      parts.forEach((r, k) => {
+        if (r.s > pos) appendGap(el, b.text.slice(pos, r.s));
+        const span = document.createElement('span');
+        span.className = 's';
+        span.dataset.k = String(segs.length);
+        span.textContent = b.text.slice(r.s, r.e);
+        el.appendChild(span);
+        const last = k === parts.length - 1;
+        segs.push({
+          b: bi, text: span.textContent, kind: b.type, el, cum: chap.blockCum[bi] + r.s,
+          pause: last ? (b.type === 'h' ? 'head' : 'para') : (r.lineEnd ? 'line' : 'sent'),
+        });
+        segs[segs.length - 1].el = span;
+        pos = r.e;
+      });
+      if (pos < b.text.length) appendGap(el, b.text.slice(pos));
+      frag.appendChild(el);
+    });
+    art.appendChild(frag);
+    S.segs = segs;
+    S.curEl = null;
+
+    const n = S.book.chapters.length;
+    $('#runHead').innerHTML = '';
+    const rb = document.createElement('b');
+    rb.textContent = S.book.title;
+    const rc = document.createElement('span');
+    rc.textContent = n > 1 ? `${S.ch + 1}. rész / ${n}` : '';
+    $('#runHead').append(rb, rc);
+    const prev = S.book.chapters[S.ch - 1], next = S.book.chapters[S.ch + 1];
+    $('#prevChap').hidden = !prev;
+    $('#nextChap').hidden = !next;
+    $('#prevChapTitle').textContent = prev ? prev.title : '';
+    $('#nextChapTitle').textContent = next ? next.title : '';
+    $('#chapNav').hidden = !prev && !next;
+  }
+
+  function renderHeader() {
+    const b = S.book;
+    $('#nbTitle').textContent = b.title;
+    $('#nbAuthor').textContent = b.author || '';
+    $('#sampleBadge').hidden = !b.isSample;
+    document.title = b.isSample ? 'Mesélő felolvasó' : `${b.title} · Mesélő`;
+  }
+
+  function visibleBand() {
+    const top = $('#topbar').getBoundingClientRect().bottom;
+    const bottom = $('#player').getBoundingClientRect().top;
+    return { top, bottom: Math.max(top + 80, bottom) };
+  }
+
+  function updateFollow() {
+    const btn = $('#followBtn');
+    if (!S.playing || !S.curEl) { btn.hidden = true; return; }
+    const r = S.curEl.getBoundingClientRect();
+    const { top, bottom } = visibleBand();
+    btn.hidden = !(r.bottom < top || r.top > bottom);
+  }
+
+  function followScroll(el, opt) {
+    if (!opt.force && now() - S.userScrollAt < 5000) { updateFollow(); return; }
+    const behavior = opt.instant || reducedMotion() ? 'auto' : 'smooth';
+    if (opt.force && S.seg === 0) { window.scrollTo({ top: 0, behavior }); updateFollow(); return; }
+    const r = el.getBoundingClientRect();
+    const { top, bottom } = visibleBand();
+    const h = bottom - top;
+    if (opt.force || r.top < top + 8 || r.bottom > bottom - h * 0.18) {
+      const y = window.scrollY + r.top - top - Math.min(h * 0.3, 170);
+      window.scrollTo({ top: Math.max(0, y), behavior });
+    }
+    updateFollow();
+  }
+
+  function highlight(k, o) {
+    const opt = o || {};
+    if (S.curEl) S.curEl.classList.remove('cur');
+    const sg = S.segs[k];
+    S.curEl = sg ? sg.el : null;
+    if (S.curEl && sg.kind !== 'sep') S.curEl.classList.add('cur');
+    if (S.curEl) followScroll(S.curEl, opt);
+    showSpoken(sg && sg.kind !== 'sep' ? H.normalizeForSpeech(sg.text, { dict: S.dict }) : '');
+    updateProgress();
+  }
+
+  function showSpoken(text) {
+    if (text !== undefined) S.spokenText = text;
+    const loading = useNeural() && Neural.state === 'loading' && S.waiting;
+    $('#spoken').hidden = !S.set.showSpoken && !loading;
+    $('#spokenLabel').textContent = loading ? 'Betöltés' : 'Kimondva';
+    $('#spokenText').textContent = loading ? loadingText() : (S.spokenText || '…');
+  }
+
+  let saveT = 0;
+  function savePos() {
+    if (!S.book) return;
+    const all = LS.get('meselo:pos', {});
+    all[S.book.id] = { ch: S.ch, seg: S.seg, pct: curPos() / S.book.total, t: Date.now() };
+    LS.set('meselo:pos', all);
+  }
+  const savePosSoon = () => { clearTimeout(saveT); saveT = setTimeout(savePos, 700); };
+
+  function updateProgress() {
+    if (!S.book) return;
+    const pos = curPos();
+    const pct = clamp(pos / S.book.total, 0, 1);
+    const pctTxt = `${Math.round(pct * 100)}%`;
+    $('#seekFill').style.transform = `scaleX(${pct})`;
+    const seek = $('#seek');
+    seek.setAttribute('aria-valuenow', String(Math.round(pct * 100)));
+    seek.setAttribute('aria-valuetext', pctTxt);
+    $('#pctLabel').textContent = pctTxt;
+    $('#remainLabel').textContent = 'még ' + fmtDur(secsFor(S.book.total - pos), true);
+    const e = currentEntry(pos);
+    $('#chapLabel').textContent = e ? e.title : S.book.chapters[S.ch].title;
+    updateMediaSession();
+    S.book.toc.forEach((t) => {
+      if (!t.el) return;
+      t.el.classList.toggle('current', t === e);
+      t.el.classList.toggle('read', !!e && t.pos < e.pos);
+    });
+    savePosSoon();
+  }
+
+  function renderToc() {
+    const b = S.book;
+    const ol = $('#tocList');
+    ol.textContent = '';
+    $('#tocBook').textContent = b.title;
+    $('#tocSub').textContent = [b.author, 'teljes hossz: ' + fmtDur(secsFor(b.total), true)].filter(Boolean).join(' · ');
+    const sorted = b.tocSorted;
+    b.toc.forEach((e) => {
+      const li = document.createElement('li');
+      li.className = 'lvl' + Math.min(e.level || 0, 2);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'toc-item';
+      const t = document.createElement('span');
+      t.className = 'toc-title';
+      t.textContent = e.title;
+      const d = document.createElement('span');
+      d.className = 'toc-dur';
+      const next = sorted[sorted.indexOf(e) + 1];
+      const len = (next ? next.pos : b.total) - e.pos;
+      d.textContent = len > 0 ? fmtDur(secsFor(len), false) : '';
+      btn.append(t, d);
+      btn.addEventListener('click', () => { goToEntry(e); closeDlg($('#tocDlg')); });
+      li.appendChild(btn);
+      ol.appendChild(li);
+      e.el = btn;
+    });
+    updateProgress();
+  }
+
+  function openChapter(ch, seg, opt) {
+    const o = opt || {};
+    S.ch = clamp(ch, 0, S.book.chapters.length - 1);
+    renderChapter();
+    S.seg = clamp(seg || 0, 0, Math.max(0, S.segs.length - 1));
+    if (o.top) window.scrollTo({ top: 0, behavior: 'auto' });
+    highlight(S.seg, { force: true, instant: true });
+  }
+
+  function showBook(book, opt) {
+    const o = opt || {};
+    stop();
+    if (S.coverUrl) { URL.revokeObjectURL(S.coverUrl); S.coverUrl = null; }
+    S.book = prepareBook(book);
+    if (book.cover) { try { S.coverUrl = URL.createObjectURL(book.cover); } catch (e) { S.coverUrl = null; } }
+    if (o.remember !== false) LS.set('meselo:last', book.id);
+    const p = LS.get('meselo:pos', {})[book.id];
+    const ch = p && p.ch < book.chapters.length ? p.ch : 0;
+    renderHeader();
+    openChapter(ch, p ? p.seg : 0);
+    renderToc();
+  }
+
+  // ── Felolvasás ────────────────────────────────────────────────────────
+  function clearTimers() {
+    clearTimeout(S.timer); clearTimeout(S.watchdog); clearInterval(S.keep);
+    S.timer = S.watchdog = S.keep = 0;
+  }
+  function cancelSpeech() {
+    S.pausedAt = null;
+    S.waiting = false;
+    Neural.stopSource();
+    try { if (synth && (synth.speaking || synth.pending || synth.paused)) synth.cancel(); } catch (e) { /* */ }
+  }
+
+  function setPlayUi() {
+    const b = $('#playBtn');
+    const busy = S.playing && !!S.waiting;
+    b.classList.toggle('on', S.playing);
+    b.classList.toggle('busy', busy);
+    b.setAttribute('aria-label', S.playing ? 'Szünet' : 'Felolvasás');
+    b.setAttribute('aria-pressed', String(S.playing));
+    b.setAttribute('aria-busy', String(busy));
+    if (busy !== S.wasBusy) { S.wasBusy = busy; showSpoken(); }
+    updateFollow();
+    updateMediaSession();
+  }
+
+  // zárolt képernyő és értesítési sáv: cím, lejátszás, szünet, léptetés
+  function updateMediaSession() {
+    if (!('mediaSession' in navigator) || !S.book || typeof MediaMetadata !== 'function') return;
+    const e = currentEntry(curPos());
+    const title = e ? e.title : S.book.title;
+    const key = `${S.book.id}|${title}`;
+    try {
+      if (key !== S.msKey) {
+        S.msKey = key;
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title, artist: S.book.author || 'Mesélő', album: S.book.title,
+          artwork: [{ src: new URL('icons/icon-512.png', document.baseURI).href, sizes: '512x512', type: 'image/png' }],
+        });
+      }
+      navigator.mediaSession.playbackState = S.playing ? 'playing' : 'paused';
+    } catch (err) { /* nem támogatott */ }
+  }
+
+  async function wake(on) {
+    if (on && useNeural()) return;
+    try {
+      if (on && !S.wl && navigator.wakeLock) {
+        S.wl = await navigator.wakeLock.request('screen');
+        if (S.wl && S.wl.addEventListener) S.wl.addEventListener('release', () => { S.wl = null; });
+      } else if (!on && S.wl) {
+        const w = S.wl; S.wl = null; await w.release();
+      }
+    } catch (e) { S.wl = null; }
+  }
+
+  function play() {
+    if (!canPlay()) { toast('Ez a böngésző nem tud felolvasni. Próbáld meg Microsoft Edge-ben vagy Chrome-ban.', 'error'); return; }
+    if (S.playing || !S.segs.length) return;
+    if (useNeural()) Neural.ensureCtx(); // a hangot a kattintáson belül kell engedélyezni (iPhone)
+    const p = S.pausedAt;
+    if (p && p.token === S.token && p.ch === S.ch && p.seg === S.seg && Neural.src) {
+      // a beépített hang ott folytatja, ahol megállt, a mondat közepén is
+      S.pausedAt = null;
+      S.playing = true;
+      setPlayUi();
+      wake(true);
+      return;
+    }
+    S.pausedAt = null;
+    S.playing = true;
+    S.errors = 0;
+    setPlayUi();
+    wake(true);
+    speakCurrent();
+  }
+  function stop() {
+    S.playing = false;
+    S.token++;
+    clearTimers();
+    cancelSpeech();
+    Neural.idle();
+    setPlayUi();
+    wake(false);
+  }
+  function pause() {
+    if (S.playing && Neural.src && Neural.ctx && useNeural()) {
+      S.playing = false;
+      S.pausedAt = { token: S.token, ch: S.ch, seg: S.seg };
+      try { Neural.ctx.suspend(); } catch (e) { /* */ }
+      Neural.idle();
+      setPlayUi();
+      wake(false);
+      savePos();
+      return;
+    }
+    stop();
+    savePos();
+  }
+  const toggle = () => (S.playing ? pause() : play());
+
+  function learnFrom(chars, secs) {
+    if (secs < 1 || chars < 30) return;
+    const cps = chars / secs;
+    if (cps < 6 || cps > 40) return;
+    S.set.cps = S.set.cps * 0.9 + cps * 0.1;
+    S.learnN = (S.learnN || 0) + 1;
+    if (S.learnN % 5 === 0) saveSettings();
+  }
+  function learn(sg, started) {
+    if (!started) return;
+    learnFrom(sg.text.length, ((now() - started) / 1000) * S.set.rate);
+  }
+
+  function finished(sg, my) {
+    clearTimeout(S.watchdog);
+    clearInterval(S.keep);
+    if (S.sleep.mode === 'time' && Date.now() >= S.sleep.until) {
+      stop();
+      setSleep('off', 0, true);
+      if (S.seg + 1 < S.segs.length) { S.seg++; highlight(S.seg); }
+      savePos();
+      toast('Az elalvási időzítő leállította a felolvasást.');
+      return;
+    }
+    S.timer = setTimeout(() => { if (my === S.token) advance(); }, pauseMs(sg.pause));
+  }
+
+  function arm(text, sg, my) {
+    const est = (text.length / (clamp(S.set.cps, 6, 40) * S.set.rate)) * 1000;
+    let tries = 0;
+    const check = () => {
+      if (my !== S.token) return;
+      let busy = false;
+      try { busy = synth.speaking || synth.pending; } catch (e) { busy = false; }
+      if (busy && tries < 6) { tries++; S.watchdog = setTimeout(check, 3000); return; }
+      if (busy) cancelSpeech();
+      finished(sg, my); // elveszett „end” esemény: továbblépünk
+    };
+    S.watchdog = setTimeout(check, est * 2.2 + 5000);
+  }
+
+  function speakCurrent() {
+    clearTimers();
+    const my = ++S.token;
+    const sg = S.segs[S.seg];
+    if (!sg) { endOfChapter(); return; }
+    highlight(S.seg);
+    const text = sg.kind === 'sep' ? '' : H.normalizeForSpeech(sg.text, { dict: S.dict });
+    if (!H.hasSpeakable(text)) {
+      S.timer = setTimeout(() => { if (my === S.token) advance(); }, pauseMs(sg.kind === 'sep' ? 'sep' : sg.pause));
+      return;
+    }
+    if (useNeural()) { speakNeural(text, sg, my); return; }
+    if (!canSpeak) { stop(); toast('Ez a böngésző nem tud felolvasni. Válaszd a beépített Imre hangot a Beállításokban.', 'error'); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = (S.voice && S.voice.lang) || 'hu-HU';
+    if (S.voice) u.voice = S.voice;
+    u.rate = S.set.rate;
+    u.pitch = S.set.pitch;
+    let started = 0;
+    u.onstart = () => { if (my === S.token) started = now(); };
+    u.onend = () => {
+      if (my !== S.token) return;
+      learn(sg, started);
+      S.errors = 0;
+      finished(sg, my);
+    };
+    u.onerror = (e) => {
+      if (my !== S.token) return;
+      const code = e && e.error;
+      if (code === 'interrupted' || code === 'canceled') return;
+      if (code === 'not-allowed') {
+        pause();
+        toast('A böngésző csak kattintás után enged felolvasni. Nyomd meg újra a lejátszás gombot.', 'error');
+        return;
+      }
+      S.errors++;
+      if (S.errors <= 2) { S.timer = setTimeout(() => { if (my === S.token) speakCurrent(); }, 500); return; }
+      S.errors = 0;
+      toast('Ezt a mondatot nem sikerült felolvasni, továbblépek.', 'error');
+      finished(sg, my);
+    };
+    S.utter = u; // ne vesszen el a hivatkozás, különben az „end” esemény elmaradhat
+    try {
+      if (synth.paused) synth.resume();
+      synth.speak(u);
+    } catch (e) {
+      pause();
+      toast('A felolvasás nem indult el ebben a böngészőben.', 'error');
+      return;
+    }
+    arm(text, sg, my);
+    if (S.voice && S.voice.localService === false && /Google/i.test(S.voice.name)) {
+      // a Chrome hálózati hangjai kb. 15 másodperc után elnémulnak; így ébren tartjuk őket
+      S.keep = setInterval(() => {
+        if (my !== S.token) { clearInterval(S.keep); return; }
+        try { if (synth.speaking) { synth.pause(); synth.resume(); } } catch (e) { /* */ }
+      }, 9000);
+    }
+  }
+
+  // Beépített hang: a mondat hangja a workerből jön, közben a következő mondatokat is előkészítjük
+  const textAt = (k) => {
+    const sg = S.segs[k];
+    if (!sg || sg.kind === 'sep') return '';
+    const t = H.normalizeForSpeech(sg.text, { dict: S.dict });
+    return H.hasSpeakable(t) ? t : '';
+  };
+  function upcomingTexts(n) {
+    const out = [];
+    for (let k = S.seg + 1; k < S.segs.length && out.length < n; k++) { const t = textAt(k); if (t) out.push(t); }
+    return out;
+  }
+
+  async function speakNeural(text, sg, my) {
+    S.waiting = true;
+    setPlayUi();
+    try {
+      if (Neural.state !== 'ready') await Neural.start();
+    } catch (e) {
+      S.waiting = false;
+      if (my === S.token) neuralFailed();
+      return;
+    }
+    if (my !== S.token) return;
+    Neural.flush([text, ...upcomingTexts(3)]);
+    let item;
+    try { item = await Neural.get(text); }
+    catch (e) {
+      if (my !== S.token || (e && e.code === 'canceled')) return;
+      S.waiting = false;
+      if (Neural.state === 'failed') { neuralFailed(); return; }
+      S.errors++;
+      if (S.errors <= 1) { S.timer = setTimeout(() => { if (my === S.token) speakCurrent(); }, 300); return; }
+      S.errors = 0;
+      toast('Ezt a mondatot nem sikerült felolvasni, továbblépek.', 'error');
+      finished(sg, my);
+      return;
+    }
+    if (my !== S.token) return;
+    S.waiting = false;
+    S.errors = 0;
+    setPlayUi();
+    if (!S.playing) return;
+    Neural.play(item.buffer, () => {
+      if (my !== S.token) return;
+      learnFrom(sg.text.length, item.buffer.duration * S.set.rate);
+      finished(sg, my);
+    });
+    upcomingTexts(3).forEach((t) => Neural.get(t).catch(() => {}));
+  }
+
+  function neuralFailed() {
+    const code = Neural.error && Neural.error.code;
+    const why = code === 'net'
+      ? 'Nem sikerült letölteni Imre hangját. Ellenőrizd az internetkapcsolatot, és próbáld újra.'
+      : 'Imre hangja ebben a böngészőben nem tud elindulni.';
+    renderVoices();
+    if (canSpeak && S.playing) {
+      toast(`${why} Addig a böngésző saját hangjával olvasok.`, 'error', 8000);
+      speakCurrent();
+    } else {
+      stop();
+      toast(why, 'error', 8000);
+    }
+  }
+
+  function advance() {
+    if (S.seg + 1 < S.segs.length) { S.seg++; speakCurrent(); return; }
+    endOfChapter();
+  }
+
+  function endOfChapter() {
+    if (S.ch + 1 >= S.book.chapters.length) {
+      stop();
+      savePos();
+      toast('A könyv végére értél.');
+      return;
+    }
+    if (S.sleep.mode === 'chapter') {
+      stop();
+      setSleep('off', 0, true);
+      openChapter(S.ch + 1, 0, { top: true });
+      toast('A fejezet végén megálltam, ahogy kérted.');
+      return;
+    }
+    openChapter(S.ch + 1, 0, { top: true });
+    if (S.playing) S.timer = setTimeout(() => { if (S.playing) speakCurrent(); }, pauseMs('head'));
+  }
+
+  function jumpTo(k, autoplay) {
+    const resume = S.playing || autoplay;
+    let busy = false;
+    try { busy = !!synth && (synth.speaking || synth.pending); } catch (e) { busy = false; }
+    S.token++;
+    clearTimers();
+    cancelSpeech();
+    S.seg = clamp(k, 0, Math.max(0, S.segs.length - 1));
+    highlight(S.seg, { force: true });
+    if (resume && canPlay()) {
+      S.playing = true;
+      setPlayUi();
+      wake(true);
+      if (useNeural()) { Neural.ensureCtx(); speakCurrent(); return; }
+      // iOS-en az első felolvasásnak a kattintáson belül kell indulnia; különben hagyunk időt a leállításnak
+      if (busy) S.timer = setTimeout(() => { if (S.playing) speakCurrent(); }, 140);
+      else speakCurrent();
+    } else if (autoplay && !canPlay()) toast('Ez a böngésző nem tud felolvasni.', 'error');
+  }
+
+  function step(d) {
+    let k = S.seg + d;
+    while (S.segs[k] && S.segs[k].kind === 'sep') k += d;
+    if (k >= 0 && k < S.segs.length) { jumpTo(k); return; }
+    const was = S.playing;
+    if (d > 0 && S.ch + 1 < S.book.chapters.length) { stop(); openChapter(S.ch + 1, 0, { top: true }); if (was) play(); }
+    else if (d < 0 && S.ch > 0) { stop(); openChapter(S.ch - 1, 1e9); if (was) play(); }
+  }
+
+  function goToEntry(e) {
+    const was = S.playing;
+    stop();
+    if (e.ch !== S.ch) openChapter(e.ch, 0, { top: true });
+    let k = S.segs.findIndex((s) => s.b >= e.block);
+    if (k < 0) k = 0;
+    jumpTo(k, was);
+  }
+
+  function seekTo(frac) {
+    const b = S.book;
+    const target = clamp(frac, 0, 1) * b.total;
+    let ch = b.chapters.findIndex((c) => target < c.start + c.chars);
+    if (ch < 0) ch = b.chapters.length - 1;
+    const was = S.playing;
+    stop();
+    if (ch !== S.ch) openChapter(ch, 0);
+    const off = target - b.chapters[ch].start;
+    let k = S.segs.findIndex((s) => s.kind !== 'sep' && s.cum + s.text.length > off);
+    if (k < 0) k = S.segs.length - 1;
+    jumpTo(k, was);
+  }
+
+  // ── Hangok ────────────────────────────────────────────────────────────
+  const isHuVoice = (v) => /^hu(?:[-_]|$)/i.test(v.lang || '') || /hungarian|magyar/i.test(v.name || '');
+  function voiceInfo(v) {
+    let name = v.name.replace(/^(Microsoft|Google|Apple)\s+/i, '')
+      .replace(/\s*[-–]\s*(Hungarian|magyar|English|German|French).*$/i, '')
+      .replace(/\s*Online\s*\(Natural\)/i, '')
+      .replace(/\s*\((?:Natural|Enhanced|Premium|Neural)\)/gi, '').trim();
+    name = { Noemi: 'Noémi', Tamas: 'Tamás' }[name] || name || v.name;
+    const natural = /Natural|Neural/i.test(v.name);
+    const better = /Premium|Enhanced/i.test(v.name);
+    const tag = natural ? 'természetes' : better ? 'bővített' : v.localService === false ? 'online' : 'rendszerhang';
+    return { name, tag, natural };
+  }
+  const voiceScore = (v) => (/Natural|Neural/i.test(v.name) ? 100 : 0) + (/Premium/i.test(v.name) ? 70 : 0) +
+    (/Enhanced/i.test(v.name) ? 60 : 0) + (/Google/i.test(v.name) ? 20 : 0) + (v.localService === false ? 5 : 0);
+
+  function loadVoices() {
+    let list = [];
+    if (canSpeak) { try { list = synth.getVoices() || []; } catch (e) { list = []; } }
+    S.allVoices = list;
+    S.huVoices = list.filter(isHuVoice).sort((a, b) => voiceScore(b) - voiceScore(a) || a.name.localeCompare(b.name));
+    const want = S.set.voice && S.set.voice !== NEURAL_ID ? S.set.voice : '';
+    let v = want ? list.find((x) => x.voiceURI === want || x.name === want) : null;
+    if (!v) v = S.huVoices[0] || null;
+    const changed = v !== S.voice;
+    S.voice = v; // a beépített hang mellett ez a tartalék
+    renderVoices();
+    if (changed && S.playing && !useNeural()) jumpTo(S.seg);
+  }
+
+  function renderVoices() {
+    const sel = $('#voiceSel');
+    const pool = S.set.allVoices ? S.huVoices.concat(S.allVoices.filter((v) => !isHuVoice(v))) : S.huVoices;
+    sel.textContent = '';
+    if (Neural.available) {
+      const g = document.createElement('optgroup');
+      g.label = 'Beépített hang';
+      const o = document.createElement('option');
+      o.value = NEURAL_ID;
+      o.textContent = Neural.state === 'failed' ? 'Imre · ebben a böngészőben nem indult el' : 'Imre · természetes, minden böngészőben';
+      g.appendChild(o);
+      sel.appendChild(g);
+    }
+    const g2 = document.createElement('optgroup');
+    g2.label = 'A böngésző hangjai';
+    const auto = document.createElement('option');
+    auto.value = '';
+    auto.textContent = !canSpeak ? 'Ez a böngésző nem tud felolvasni'
+      : S.huVoices.length ? `Automatikus (${voiceInfo(S.huVoices[0]).name})` : 'Automatikus (rendszer alapértelmezése)';
+    auto.disabled = !canSpeak;
+    g2.appendChild(auto);
+    pool.forEach((v) => {
+      const o = document.createElement('option');
+      const i = voiceInfo(v);
+      o.value = v.voiceURI || v.name;
+      o.textContent = `${i.name} · ${i.tag}${isHuVoice(v) ? '' : ` (${v.lang})`}`;
+      g2.appendChild(o);
+    });
+    sel.appendChild(g2);
+    if (S.set.voice === NEURAL_ID && Neural.available) sel.value = NEURAL_ID;
+    else sel.value = S.set.voice && pool.some((v) => (v.voiceURI || v.name) === S.set.voice) ? S.set.voice : '';
+    sel.disabled = !canSpeak && !Neural.available;
+    renderEngine();
+  }
+
+  const mb = (b) => huNum(b / 1048576, 0, 0);
+  function loadingText() {
+    if (Neural.stage === 'compile') return 'Imre hangjának előkészítése…';
+    const pct = Neural.total ? Math.floor((Neural.loaded / Neural.total) * 100) : 0;
+    return `Imre hangjának letöltése: ${pct}% (${mb(Neural.loaded)} / ${mb(Neural.total || Neural.totalMB * 1048576)} MB). Csak az első alkalommal kell.`;
+  }
+
+  // a hangválasztó kis címkéje a lejátszóban és a súgó a beállításokban
+  function renderEngine() {
+    const chip = $('#voiceChip');
+    const chipText = $('#voiceChipText');
+    const hint = $('#voiceHint');
+    hint.classList.remove('warn');
+    chip.classList.remove('warn');
+    $('#pitchField').hidden = useNeural();
+    showSpoken();
+    setPlayUi();
+    if (S.set.voice === NEURAL_ID && Neural.available) {
+      if (Neural.state !== 'failed') {
+        const pct = Neural.total ? Math.floor((Neural.loaded / Neural.total) * 100) : 0;
+        chipText.textContent = Neural.state !== 'loading' ? 'Imre' : Neural.stage === 'compile' ? 'Imre · indul' : `Imre · ${pct}%`;
+        chip.title = 'Hang: Imre (beépített)';
+        hint.textContent = Neural.state === 'loading' ? loadingText()
+          : `Beépített, természetes hang. A böngésződben fut, ezért minden böngészőben és telefonon ugyanígy szól. Első használatkor kb. ${Neural.totalMB} MB-ot tölt le, utána internet nélkül is működik.`;
+        return;
+      }
+      hint.classList.add('warn');
+      chip.classList.add('warn');
+      const why = Neural.error && Neural.error.code === 'net'
+        ? 'Nem sikerült letölteni Imre hangját (nincs internet?). Az oldal újratöltésével újra megpróbálom.'
+        : 'Imre hangja ebben a böngészőben nem tud elindulni. Egy friss Chrome, Edge, Firefox vagy Safari kell hozzá.';
+      hint.textContent = `${why} Addig a böngésző saját hangjával olvasok.`;
+      chipText.textContent = S.voice ? voiceInfo(S.voice).name : 'Nincs hang';
+      return;
+    }
+    if (!canSpeak) {
+      chipText.textContent = 'Nincs felolvasás';
+      chip.classList.add('warn');
+      hint.classList.add('warn');
+      hint.textContent = 'Ez a böngésző nem támogatja a felolvasást. Válaszd a beépített Imre hangot.';
+      return;
+    }
+    if (!S.voice) {
+      chipText.textContent = 'Nincs magyar hang';
+      chip.classList.add('warn');
+      hint.classList.add('warn');
+      hint.textContent = 'Ebben a böngészőben nincs magyar hang, ezért a rendszer alapértelmezett hangja olvas. Válaszd inkább a beépített Imre hangot.';
+      return;
+    }
+    const i = voiceInfo(S.voice);
+    chipText.textContent = i.name;
+    chip.classList.toggle('warn', !isHuVoice(S.voice));
+    chip.title = `Hang: ${i.name} (${i.tag})`;
+    if (!isHuVoice(S.voice)) {
+      hint.classList.add('warn');
+      hint.textContent = 'Ez nem magyar hang, ezért a magyar szöveget idegen kiejtéssel olvassa fel.';
+    } else if (i.natural) {
+      hint.textContent = S.voice.localService === false
+        ? 'Természetes, neurális hang. A működéséhez internetkapcsolat kell.'
+        : 'Természetes, neurális hang.';
+    } else {
+      hint.textContent = 'Ez a rendszer saját, gépies magyar hangja. A beépített Imre hang sokkal természetesebb.';
+    }
+  }
+
+  // ── Elalvási időzítő ──────────────────────────────────────────────────
+  const SLEEP_SEQ = ['off', 15, 30, 60, 'chapter'];
+  function setSleep(mode, minutes, silent) {
+    clearInterval(S.sleepTick);
+    S.sleep = { mode, minutes: minutes || 0, until: mode === 'time' ? Date.now() + minutes * 60000 : 0 };
+    if (mode === 'time') S.sleepTick = setInterval(renderSleep, 15000);
+    renderSleep();
+    if (!silent) {
+      toast(mode === 'off' ? 'Az elalvási időzítő kikapcsolva.'
+        : mode === 'chapter' ? 'A fejezet végén megállok.' : `${minutes} perc múlva megállok, a mondat végén.`);
+    }
+  }
+  function cycleSleep() {
+    const cur = S.sleep.mode === 'time' ? S.sleep.minutes : S.sleep.mode;
+    const nx = SLEEP_SEQ[(SLEEP_SEQ.indexOf(cur) + 1) % SLEEP_SEQ.length];
+    if (nx === 'off' || nx === 'chapter') setSleep(nx);
+    else setSleep('time', nx);
+  }
+  function renderSleep() {
+    let txt = '';
+    if (S.sleep.mode === 'time') txt = `${Math.max(0, Math.ceil((S.sleep.until - Date.now()) / 60000))} p`;
+    else if (S.sleep.mode === 'chapter') txt = 'fejezet';
+    $('#sleepLabel').textContent = txt;
+    const b = $('#sleepBtn');
+    b.classList.toggle('on', S.sleep.mode !== 'off');
+    b.setAttribute('aria-label', S.sleep.mode === 'off' ? 'Elalvási időzítő: ki' : `Elalvási időzítő: ${txt}`);
+    b.title = S.sleep.mode === 'off' ? 'Elalvási időzítő' : `Megáll: ${S.sleep.mode === 'chapter' ? 'a fejezet végén' : txt.replace(' p', ' perc múlva')}`;
+  }
+
+  // ── Beállítások ───────────────────────────────────────────────────────
+  const RATES = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6];
+  const fmtRate = (r) => `${huNum(r, 1, 2)}×`;
+  function renderRate() {
+    $('#rateBtn').textContent = fmtRate(S.set.rate);
+    $('#rateRange').value = String(S.set.rate);
+    $('#rateOut').textContent = fmtRate(S.set.rate);
+  }
+  function setRate(r, restart) {
+    S.set.rate = Math.round(clamp(r, 0.5, 2) * 100) / 100;
+    saveSettings();
+    renderRate();
+    Neural.clearCache(); // a beépített hang más tempóhoz újra elkészíti a mondatokat
+    if (restart && S.playing) jumpTo(S.seg);
+    if (S.book) { renderToc(); }
+  }
+  function applySettingsUi() {
+    renderRate();
+    $('#pitchRange').value = String(S.set.pitch);
+    $('#pitchOut').textContent = huNum(S.set.pitch, 2, 2);
+    $$('#pauseSeg button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.pause === S.set.pause)));
+    document.documentElement.style.setProperty('--read-scale', String(S.set.font));
+    $('#fontOut').textContent = `${Math.round(S.set.font * 100)}%`;
+    $('#showSpoken').checked = !!S.set.showSpoken;
+    $('#allVoices').checked = !!S.set.allVoices;
+    $('#dictArea').value = S.set.dict;
+    renderDictCount();
+  }
+  function renderDictCount() {
+    const n = S.dict.length;
+    $('#dictCount').textContent = n ? `${n} szabály` : '';
+  }
+
+  function previewTry() {
+    const raw = $('#tryInput').value.trim();
+    $('#tryOut').textContent = raw ? H.normalizeForSpeech(raw, { dict: S.dict }) : '';
+  }
+  function speakTry() {
+    previewTry();
+    const text = $('#tryOut').textContent;
+    if (!text) return;
+    if (!canPlay()) { toast('Ez a böngésző nem tud felolvasni.', 'error'); return; }
+    if (S.playing) pause();
+    S.token++;
+    clearTimers();
+    cancelSpeech();
+    if (useNeural()) {
+      const my = S.token;
+      Neural.ensureCtx();
+      const btn = $('#tryBtn');
+      btn.disabled = true;
+      Neural.start()
+        .then(() => Neural.get(text))
+        .then((item) => { if (my === S.token) Neural.play(item.buffer, () => { if (!S.playing) Neural.idle(); }); })
+        .catch(() => { if (Neural.state === 'failed') neuralFailed(); })
+        .finally(() => { btn.disabled = false; });
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = (S.voice && S.voice.lang) || 'hu-HU';
+    if (S.voice) u.voice = S.voice;
+    u.rate = S.set.rate;
+    u.pitch = S.set.pitch;
+    S.utter = u;
+    try { synth.speak(u); } catch (e) { toast('A felolvasás nem indult el ebben a böngészőben.', 'error'); }
+  }
+
+  // ── Könyvtár ──────────────────────────────────────────────────────────
+  const LANGS = { en: 'angol', de: 'német', fr: 'francia', es: 'spanyol', it: 'olasz', ru: 'orosz', pl: 'lengyel',
+    cs: 'cseh', sk: 'szlovák', ro: 'román', hr: 'horvát', sr: 'szerb', pt: 'portugál', nl: 'holland', fi: 'finn',
+    sv: 'svéd', ja: 'japán', zh: 'kínai', la: 'latin', uk: 'ukrán' };
+
+  function errText(err) {
+    const c = err && err.code;
+    return ({
+      notzip: 'Ezt a fájlt nem tudom megnyitni: nem érvényes EPUB, vagy megsérült.',
+      drm: 'Ez a könyv DRM-védett, ezért nem tudom felolvasni. DRM-mentes vagy csak vízjeles EPUB-ot tudok megnyitni.',
+      notext: 'Nem találtam felolvasható szöveget a könyvben. Lehet, hogy csak képekből áll.',
+      noopf: 'A könyvből hiányzik a tartalomleíró (OPF) fájl, ezért nem tudom megnyitni.',
+      inflate: 'Ez a böngésző nem tudja kibontani az EPUB-ot. Próbáld meg egy frissebb böngészőben.',
+    })[c] || 'Nem sikerült megnyitni a könyvet. Ellenőrizd, hogy ép EPUB-fájlt választottál-e.';
+  }
+
+  async function makeThumb(blob) {
+    if (!blob || typeof createImageBitmap !== 'function') return null;
+    try {
+      const bmp = await createImageBitmap(blob);
+      const h = 160, w = Math.max(1, Math.round((bmp.width * h) / bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.min(w, 220);
+      c.height = h;
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', 0.82);
+    } catch (e) { return null; }
+  }
+
+  async function trimLibrary(keepId) {
+    const all = (await DB.all()).sort((a, b) => (b.opened || 0) - (a.opened || 0));
+    for (const r of all.slice(8)) if (r.id !== keepId) await DB.del(r.id);
+  }
+
+  async function openFile(file) {
+    if (!file) return;
+    if (!/\.epub$/i.test(file.name) && file.type !== 'application/epub+zip') {
+      toast('Ez nem EPUB-fájl. Csak .epub kiterjesztésű könyvet tudok megnyitni.', 'error');
+      return;
+    }
+    toast(`Megnyitom: ${file.name}`, 'busy', 60000);
+    try {
+      const buf = await file.arrayBuffer();
+      const book = await window.Epub.open(buf, { fileName: file.name });
+      const thumb = await makeThumb(book.cover);
+      await DB.put({
+        id: book.id, title: book.title, author: book.author, name: file.name, size: file.size,
+        file: new Blob([buf], { type: 'application/epub+zip' }), thumb, added: Date.now(), opened: Date.now(),
+      });
+      trimLibrary(book.id);
+      showBook(book);
+      closeDlg($('#libDlg'));
+      const lang = (book.lang || '').toLowerCase();
+      if (lang && !/^hu/.test(lang)) {
+        toast(`Megnyitottam: ${book.title}. A könyv nyelve ${LANGS[lang.slice(0, 2)] || lang}, a Mesélő viszont magyar kiejtéssel olvas, ezért furcsán szólhat.`, 'info', 8000);
+      } else toast(`Megnyitottam: ${book.title}`);
+    } catch (err) {
+      toast(errText(err), 'error', 8000);
+    }
+  }
+
+  async function openStored(id, opt) {
+    const o = opt || {};
+    if (id === 'sample') { showBook(sampleBook()); closeDlg($('#libDlg')); return true; }
+    const rec = await DB.get(id);
+    if (!rec || !rec.file) {
+      if (!o.silent) toast('Ezt a könyvet már nem találom ebben a böngészőben. Nyisd meg újra a fájlt.', 'error');
+      return false;
+    }
+    try {
+      const book = await window.Epub.open(await rec.file.arrayBuffer(), { fileName: rec.name });
+      rec.opened = Date.now();
+      DB.put(rec);
+      showBook(book);
+      closeDlg($('#libDlg'));
+      return true;
+    } catch (err) {
+      if (!o.silent) toast(errText(err), 'error');
+      return false;
+    }
+  }
+
+  function coverEl(thumb, title) {
+    if (thumb) {
+      const img = document.createElement('img');
+      img.className = 'cover';
+      img.src = thumb;
+      img.alt = '';
+      return img;
+    }
+    const d = document.createElement('span');
+    d.className = 'cover gen';
+    d.textContent = (String(title || '?').trim()[0] || '?').toUpperCase();
+    d.setAttribute('aria-hidden', 'true');
+    return d;
+  }
+
+  async function renderLibrary() {
+    const list = $('#bookList');
+    const recs = (await DB.all()).sort((a, b) => (b.opened || 0) - (a.opened || 0));
+    const pos = LS.get('meselo:pos', {});
+    list.textContent = '';
+    const items = recs.map((r) => ({ id: r.id, title: r.title, author: r.author, thumb: r.thumb }));
+    items.push({ id: 'sample', title: 'Ismerkedés a Mesélővel', author: 'Beépített mintakönyv', thumb: null, sample: true });
+    items.forEach((it) => {
+      const li = document.createElement('li');
+      li.className = 'book-row' + (S.book && S.book.id === it.id ? ' current' : '');
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'book-open';
+      const txt = document.createElement('span');
+      txt.className = 'bk-text';
+      const t = document.createElement('span');
+      t.className = 'bk-title';
+      t.textContent = it.title;
+      const m = document.createElement('span');
+      m.className = 'bk-meta';
+      const p = pos[it.id];
+      const state = S.book && S.book.id === it.id ? 'most olvasod' : p ? `${Math.round((p.pct || 0) * 100)}%-nál tartasz` : 'még nem kezdted el';
+      m.textContent = [it.author, state].filter(Boolean).join(' · ');
+      txt.append(t, m);
+      open.append(coverEl(it.thumb, it.title), txt);
+      open.addEventListener('click', () => openStored(it.id));
+      li.appendChild(open);
+      if (!it.sample) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'book-del';
+        del.setAttribute('aria-label', `${it.title} eltávolítása a könyvtárból`);
+        del.innerHTML = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+        del.addEventListener('click', async () => {
+          await DB.del(it.id);
+          const all = LS.get('meselo:pos', {});
+          delete all[it.id];
+          LS.set('meselo:pos', all);
+          if (S.book && S.book.id === it.id) showBook(sampleBook());
+          renderLibrary();
+          toast(`Eltávolítottam: ${it.title}`);
+        });
+        li.appendChild(del);
+      }
+      list.appendChild(li);
+    });
+    $('#clearBtn').hidden = !recs.length;
+  }
+
+  // ── Párbeszédablakok, értesítések ─────────────────────────────────────
+  function openDlg(sel) {
+    const d = $(sel);
+    if (d.open) return;
+    try { d.showModal(); } catch (e) { d.setAttribute('open', ''); }
+  }
+  function closeDlg(d) { if (d && d.open) { try { d.close(); } catch (e) { d.removeAttribute('open'); } } }
+
+  let toastT = 0;
+  function toast(msg, kind, ms) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.dataset.kind = kind || 'info';
+    t.hidden = false;
+    requestAnimationFrame(() => t.classList.add('show'));
+    clearTimeout(toastT);
+    toastT = setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => { if (!t.classList.contains('show')) t.hidden = true; }, 250);
+    }, ms || 4200);
+  }
+
+  // ── Események ─────────────────────────────────────────────────────────
+  function bindUi() {
+    $('#playBtn').addEventListener('click', toggle);
+    $('#prevBtn').addEventListener('click', () => step(-1));
+    $('#nextBtn').addEventListener('click', () => step(1));
+    $('#rateBtn').addEventListener('click', () => {
+      const nx = RATES.find((x) => x > S.set.rate + 0.001) || RATES[0];
+      setRate(nx, true);
+    });
+    $('#sleepBtn').addEventListener('click', cycleSleep);
+    $('#voiceChip').addEventListener('click', () => openDlg('#setDlg'));
+    $('#followBtn').addEventListener('click', () => { S.userScrollAt = -1e9; if (S.curEl) followScroll(S.curEl, { force: true }); });
+    $('#prevChap').addEventListener('click', () => { const was = S.playing; stop(); openChapter(S.ch - 1, 0, { top: true }); if (was) play(); });
+    $('#nextChap').addEventListener('click', () => { const was = S.playing; stop(); openChapter(S.ch + 1, 0, { top: true }); if (was) play(); });
+
+    $('#chapter').addEventListener('click', (e) => {
+      const sp = e.target.closest('.s');
+      if (!sp) return;
+      const sel = window.getSelection && window.getSelection();
+      if (sel && !sel.isCollapsed) return;
+      jumpTo(Number(sp.dataset.k), true);
+    });
+
+    $('#tocBtn').addEventListener('click', () => {
+      openDlg('#tocDlg');
+      const cur = S.book.toc.find((t) => t.el && t.el.classList.contains('current'));
+      if (cur) cur.el.scrollIntoView({ block: 'center' });
+    });
+    $('#libBtn').addEventListener('click', () => { renderLibrary(); openDlg('#libDlg'); });
+    $('#brandBtn').addEventListener('click', () => { renderLibrary(); openDlg('#libDlg'); });
+    $('#setBtn').addEventListener('click', () => openDlg('#setDlg'));
+    $$('dialog').forEach((d) => {
+      d.addEventListener('click', (e) => { if (e.target === d) closeDlg(d); });
+      $$('[data-close]', d).forEach((b) => b.addEventListener('click', () => closeDlg(d)));
+    });
+
+    $('#openBtn').addEventListener('click', () => $('#fileInput').click());
+    $('#fileInput').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = '';
+      openFile(f);
+    });
+    $('#clearBtn').addEventListener('click', () => { $('#clearConfirm').hidden = false; $('#clearBtn').hidden = true; });
+    $('#clearNo').addEventListener('click', () => { $('#clearConfirm').hidden = true; $('#clearBtn').hidden = false; });
+    $('#clearYes').addEventListener('click', async () => {
+      await DB.clear();
+      LS.del('meselo:pos');
+      LS.del('meselo:last');
+      $('#clearConfirm').hidden = true;
+      if (!S.book.isSample) showBook(sampleBook());
+      renderLibrary();
+      toast('Töröltem a mentett könyveket és könyvjelzőket.');
+    });
+
+    // beállítások
+    $('#voiceSel').addEventListener('change', (e) => {
+      const was = S.playing;
+      if (was) stop();
+      S.set.voice = e.target.value;
+      saveSettings();
+      loadVoices();
+      if (useNeural()) Neural.start().catch(() => {});
+      if (was) play();
+    });
+    $('#allVoices').addEventListener('change', (e) => { S.set.allVoices = e.target.checked; saveSettings(); renderVoices(); });
+    $('#rateRange').addEventListener('input', (e) => { $('#rateOut').textContent = fmtRate(Number(e.target.value)); });
+    $('#rateRange').addEventListener('change', (e) => setRate(Number(e.target.value), true));
+    $('#pitchRange').addEventListener('input', (e) => { $('#pitchOut').textContent = huNum(Number(e.target.value), 2, 2); });
+    $('#pitchRange').addEventListener('change', (e) => {
+      S.set.pitch = Number(e.target.value);
+      saveSettings();
+      if (S.playing) jumpTo(S.seg);
+    });
+    $$('#pauseSeg button').forEach((b) => b.addEventListener('click', () => {
+      S.set.pause = b.dataset.pause;
+      saveSettings();
+      applySettingsUi();
+    }));
+    const setFont = (d) => {
+      S.set.font = Math.round(clamp(S.set.font + d, 0.8, 1.6) * 10) / 10;
+      saveSettings();
+      applySettingsUi();
+      if (S.curEl) followScroll(S.curEl, { force: true, instant: true });
+    };
+    $('#fontDown').addEventListener('click', () => setFont(-0.1));
+    $('#fontUp').addEventListener('click', () => setFont(0.1));
+    $('#showSpoken').addEventListener('change', (e) => { S.set.showSpoken = e.target.checked; saveSettings(); highlight(S.seg); });
+    let dictT = 0;
+    $('#dictArea').addEventListener('input', (e) => {
+      clearTimeout(dictT);
+      dictT = setTimeout(() => {
+        S.set.dict = e.target.value;
+        S.dict = H.compileDict(S.set.dict);
+        saveSettings();
+        renderDictCount();
+        previewTry();
+        showSpoken(S.segs[S.seg] ? H.normalizeForSpeech(S.segs[S.seg].text, { dict: S.dict }) : '');
+      }, 300);
+    });
+    $('#tryInput').addEventListener('input', previewTry);
+    $('#tryForm').addEventListener('submit', (e) => { e.preventDefault(); speakTry(); });
+
+    // haladássáv
+    const seek = $('#seek');
+    const fracAt = (x) => { const r = seek.getBoundingClientRect(); return (x - r.left) / r.width; };
+    seek.addEventListener('click', (e) => seekTo(fracAt(e.clientX)));
+    seek.addEventListener('keydown', (e) => {
+      const pct = curPos() / S.book.total;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); seekTo(pct + 0.01); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); seekTo(pct - 0.01); }
+      else if (e.key === 'PageDown') { e.preventDefault(); e.stopPropagation(); seekTo(pct + 0.1); }
+      else if (e.key === 'PageUp') { e.preventDefault(); e.stopPropagation(); seekTo(pct - 0.1); }
+    });
+
+    // billentyűk
+    document.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if ($$('dialog').some((d) => d.open)) return;
+      const t = e.target;
+      if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (e.key === ' ' || e.code === 'Space') {
+        if (t && t.closest && t.closest('button')) return;
+        e.preventDefault();
+        toggle();
+      } else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+      else if (['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) S.userScrollAt = now();
+    });
+
+    // kézi görgetés: egy ideig nem rántjuk vissza a kiemeléshez
+    const userScroll = () => { S.userScrollAt = now(); };
+    window.addEventListener('wheel', userScroll, { passive: true });
+    window.addEventListener('touchmove', userScroll, { passive: true });
+    let raf = 0;
+    window.addEventListener('scroll', () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        $('#topbar').classList.toggle('scrolled', window.scrollY > 4);
+        updateFollow();
+      });
+    }, { passive: true });
+
+    // fájl ráhúzása
+    let depth = 0;
+    const hasFiles = (e) => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+    window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); depth++; $('#dropzone').hidden = false; });
+    window.addEventListener('dragover', (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+    window.addEventListener('dragleave', (e) => { if (!hasFiles(e)) return; depth = Math.max(0, depth - 1); if (!depth) $('#dropzone').hidden = true; });
+    window.addEventListener('drop', (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth = 0;
+      $('#dropzone').hidden = true;
+      const files = [...e.dataTransfer.files];
+      openFile(files.find((x) => /\.epub$/i.test(x.name)) || files[0]);
+    });
+
+    window.addEventListener('pagehide', savePos);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') savePos();
+      else if (S.playing) wake(true);
+    });
+
+    // a lejátszó magassága igazítja az alsó margót és az értesítések helyét
+    const setH = () => document.documentElement.style.setProperty('--player-h', `${Math.ceil($('#player').getBoundingClientRect().height)}px`);
+    if (window.ResizeObserver) new ResizeObserver(setH).observe($('#player'));
+    setH();
+  }
+
+  // ── Telepíthető app (csak az önálló weboldalon) ─────────────────────────
+  function initApp() {
+    if ('mediaSession' in navigator) {
+      const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) { /* nem támogatott */ } };
+      set('play', () => play());
+      set('pause', () => pause());
+      set('stop', () => pause());
+      set('previoustrack', () => step(-1));
+      set('nexttrack', () => step(1));
+      set('seekbackward', () => step(-1));
+      set('seekforward', () => step(1));
+    }
+    if (!window.MESELO_SITE) return;
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    let deferred = null;
+    window.addEventListener('beforeinstallprompt', (e) => { deferred = e; $('#installZone').hidden = false; });
+    window.addEventListener('appinstalled', () => { deferred = null; $('#installZone').hidden = true; toast('A Mesélő telepítve van.'); });
+    $('#installBtn').addEventListener('click', async () => {
+      if (!deferred) return;
+      try { await deferred.prompt(); await deferred.userChoice; } catch (e) { /* */ }
+      deferred = null;
+      $('#installZone').hidden = true;
+    });
+    // Windows: jobb klikk egy EPUB-on → Társítás… → Mesélő
+    if ('launchQueue' in window) {
+      window.launchQueue.setConsumer(async (params) => {
+        const h = params && params.files && params.files[0];
+        if (h) { try { openFile(await h.getFile()); } catch (e) { /* */ } }
+      });
+    }
+  }
+
+  // ── Indulás ───────────────────────────────────────────────────────────
+  function init() {
+    document.documentElement.lang = 'hu';
+    const last = LS.get('meselo:last', null);
+    applySettingsUi();
+    bindUi();
+    initApp();
+    renderSleep();
+    showBook(sampleBook(), { remember: false });
+    previewTry();
+    loadVoices();
+    if (canSpeak) {
+      try { synth.addEventListener('voiceschanged', loadVoices); } catch (e) { synth.onvoiceschanged = loadVoices; }
+      [150, 600, 1500, 3500].forEach((t) => setTimeout(loadVoices, t));
+    }
+    // ha Imre hangja már le van töltve, a háttérben elindítjuk, hogy a lejátszás azonnal szóljon
+    if (useNeural()) Neural.isCached().then((hit) => { if (hit) Neural.start().catch(() => {}); });
+    if (last && last !== 'sample') openStored(last, { silent: true });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
+</body>
+</html>

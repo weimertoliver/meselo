@@ -1,0 +1,197 @@
+<title>Mesélő felolvasó</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&display=swap">
+<style>
+/*@@CSS@@*/
+</style>
+<!--@@BODY@@-->
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <button class="brand" id="brandBtn" type="button" aria-label="Mesélő: könyvtár megnyitása">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="o" cx="12" cy="15.2" r="5.6"/><path class="acc" d="M10.7 2.9 8.8 7.6M16.2 2.9l-1.9 4.7"/></svg>
+      <span class="brand-name">Mesélő</span>
+    </button>
+    <div class="nowbook">
+      <span class="nb-title" id="nbTitle"></span>
+      <span class="nb-meta"><span id="nbAuthor"></span><span class="badge" id="sampleBadge" hidden>Minta</span></span>
+    </div>
+    <nav class="actions" aria-label="Fő műveletek">
+      <button class="tbtn" id="tocBtn" type="button" aria-label="Tartalom">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h14"/></svg><span>Tartalom</span>
+      </button>
+      <button class="tbtn" id="libBtn" type="button" aria-label="Könyvtár">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h3.2v15H5zM10.4 4.5h3.2v15h-3.2zM15.6 5.6l3-.8 3.4 14.4-3 .8z"/></svg><span>Könyvtár</span>
+      </button>
+      <button class="tbtn" id="setBtn" type="button" aria-label="Beállítások">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span>Beállítások</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="reader" id="reader">
+  <div class="page">
+    <p class="runhead" id="runHead"></p>
+    <article class="chapter" id="chapter" lang="hu"></article>
+    <nav class="chapnav" id="chapNav" aria-label="Fejezetek">
+      <button type="button" class="chap-btn prev" id="prevChap"><span class="cb-dir">Előző rész</span><span class="cb-title" id="prevChapTitle"></span></button>
+      <button type="button" class="chap-btn next" id="nextChap"><span class="cb-dir">Következő rész</span><span class="cb-title" id="nextChapTitle"></span></button>
+    </nav>
+  </div>
+</main>
+
+<button type="button" class="follow" id="followBtn" hidden>Ugrás a felolvasott részhez</button>
+
+<footer class="player" id="player">
+  <div class="seek" id="seek" role="slider" tabindex="0" aria-label="Haladás a könyvben" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="seek-track"><div class="seek-fill" id="seekFill"></div></div>
+  </div>
+  <div class="player-inner">
+    <p class="spoken" id="spoken"><span class="spoken-label" id="spokenLabel">Kimondva</span><span class="spoken-text" id="spokenText">…</span></p>
+    <div class="pmeta">
+      <span class="pm-chap" id="chapLabel"></span>
+      <span class="pm-right"><span id="pctLabel">0%</span><span aria-hidden="true">·</span><span id="remainLabel"></span></span>
+    </div>
+    <div class="controls">
+      <div class="c-left">
+        <button type="button" class="chip" id="voiceChip" aria-label="Hang kiválasztása"><span class="chip-dot"></span><span id="voiceChipText">Hang</span></button>
+      </div>
+      <div class="c-mid">
+        <button type="button" class="ibtn" id="prevBtn" aria-label="Előző mondat" title="Előző mondat (←)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12"/><path d="M18 6.6 10.2 12 18 17.4z" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="play" id="playBtn" aria-label="Felolvasás" aria-pressed="false" title="Lejátszás / szünet (szóköz)">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 5.6v12.8a.8.8 0 0 0 1.2.7l9.9-6.4a.8.8 0 0 0 0-1.4L9.8 4.9a.8.8 0 0 0-1.2.7z" fill="currentColor"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="ibtn" id="nextBtn" aria-label="Következő mondat" title="Következő mondat (→)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12"/><path d="M6 6.6 13.8 12 6 17.4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="c-right">
+        <button type="button" class="pill" id="rateBtn" aria-label="Tempó váltása" title="Tempó">1,0×</button>
+        <button type="button" class="pill" id="sleepBtn" aria-label="Elalvási időzítő: ki" title="Elalvási időzítő">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.6A7.6 7.6 0 0 1 9.4 5a7.6 7.6 0 1 0 9.6 9.6z"/></svg><span id="sleepLabel"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<dialog id="tocDlg" class="sheet from-left" aria-labelledby="tocHead">
+  <div class="sheet-head">
+    <h2 id="tocHead">Tartalom</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="toc-meta"><span class="toc-book" id="tocBook"></span><span class="toc-sub" id="tocSub"></span></div>
+    <ol class="toc" id="tocList"></ol>
+  </div>
+</dialog>
+
+<dialog id="libDlg" class="sheet" aria-labelledby="libHead">
+  <div class="sheet-head">
+    <h2 id="libHead">Könyvtár</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="open-zone">
+      <button type="button" class="btn" id="openBtn">EPUB-fájl megnyitása</button>
+      <p class="hint">Vagy húzd rá a fájlt az oldalra. A könyvek csak ebben a böngészőben maradnak, nem töltődnek fel sehová. DRM-védett könyvet nem tudok megnyitni.</p>
+    </div>
+    <div class="install-zone" id="installZone" hidden>
+      <button type="button" class="btn ghost" id="installBtn">Mesélő telepítése erre az eszközre</button>
+      <p class="hint">Telepítve saját ikonnal, külön ablakban indul, és internet nélkül is működik.</p>
+    </div>
+    <ul class="book-list" id="bookList"></ul>
+    <div class="lib-foot">
+      <button type="button" class="btn ghost" id="clearBtn" hidden>Mentett könyvek törlése</button>
+      <div class="confirm" id="clearConfirm" hidden>
+        <p class="hint">Minden mentett könyvet és könyvjelzőt törölsz ebből a böngészőből.</p>
+        <div class="row"><button type="button" class="btn danger" id="clearYes">Törlés</button><button type="button" class="btn ghost" id="clearNo">Mégse</button></div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="setDlg" class="sheet" aria-labelledby="setHead">
+  <div class="sheet-head">
+    <h2 id="setHead">Beállítások</h2>
+    <button type="button" class="x" data-close aria-label="Bezárás"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label for="voiceSel">Hang</label>
+      <select id="voiceSel"></select>
+      <p class="hint" id="voiceHint"></p>
+      <label class="check" for="allVoices"><input type="checkbox" id="allVoices"> Más nyelvű hangok is látszanak</label>
+    </div>
+    <div class="field">
+      <div class="label-row"><label for="rateRange">Tempó</label><output id="rateOut" for="rateRange">1,0×</output></div>
+      <input type="range" id="rateRange" min="0.6" max="1.8" step="0.05" value="1">
+    </div>
+    <div class="field" id="pitchField">
+      <div class="label-row"><label for="pitchRange">Hangmagasság</label><output id="pitchOut" for="pitchRange">1,00</output></div>
+      <input type="range" id="pitchRange" min="0.8" max="1.2" step="0.02" value="1">
+    </div>
+    <div class="field">
+      <span class="label" id="pauseLabel">Szünet a bekezdések között</span>
+      <div class="seg" id="pauseSeg" role="radiogroup" aria-labelledby="pauseLabel">
+        <button type="button" role="radio" data-pause="short" aria-checked="false">Rövid</button>
+        <button type="button" role="radio" data-pause="mid" aria-checked="true">Közepes</button>
+        <button type="button" role="radio" data-pause="long" aria-checked="false">Hosszú</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="fontLabel">Betűméret</span>
+      <div class="stepper" role="group" aria-labelledby="fontLabel">
+        <button type="button" id="fontDown" aria-label="Kisebb betű">A−</button>
+        <output id="fontOut">100%</output>
+        <button type="button" id="fontUp" aria-label="Nagyobb betű">A+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check" for="showSpoken"><input type="checkbox" id="showSpoken"> Kimondott szöveg mutatása</label>
+      <p class="hint">A lejátszó fölött látod, hogyan olvassa ki a számokat, dátumokat és rövidítéseket.</p>
+    </div>
+    <div class="field">
+      <div class="label-row"><label for="dictArea">Kiejtési szótár</label><span class="muted" id="dictCount"></span></div>
+      <textarea id="dictArea" rows="4" spellcheck="false" placeholder="Hermion = Hermájon&#10;Chicago = Sikágó"></textarea>
+      <p class="hint">Soronként egy szabály: írott alak = kimondott alak. A szabály a szó elejére illeszkedik, így a toldalékos alakokra is működik (Chicagóban → Sikágóban).</p>
+    </div>
+    <form class="field" id="tryForm">
+      <label for="tryInput">Kiejtéspróba</label>
+      <div class="try"><input type="text" id="tryInput" value="1848. március 15-én dr. Kovács kb. 3,5 km-t gyalogolt a II. kerületig." autocomplete="off"><button type="submit" class="btn" id="tryBtn">Meghallgatom</button></div>
+      <p class="tryout" id="tryOut" aria-live="polite"></p>
+    </form>
+    <div class="keys" aria-label="Billentyűparancsok">
+      <div><kbd>Szóköz</kbd> lejátszás vagy szünet</div>
+      <div><kbd>←</kbd><kbd>→</kbd> előző vagy következő mondat</div>
+    </div>
+    <p class="hint credits">Imre hangja: Piper hangmodell (Open Home Foundation, CC0 hangfelvételek alapján). Kiejtés: espeak-ng (GPL-3.0). Futtatás: ONNX Runtime Web (MIT).</p>
+  </div>
+</dialog>
+
+<div class="dropzone" id="dropzone" hidden>
+  <div class="dz-card">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.6c3-1 6-1 9 1 3-2 6-2 9-1V19c-3-1-6-1-9 1-3-2-6-2-9-1zM12 6.6V20"/></svg>
+    <p>Engedd el, és megnyitom a könyvet</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<input type="file" id="fileInput" accept=".epub,application/epub+zip" hidden>
+
+<script>
+/*@@TTS@@*/
+</script>
+<script>
+/*@@HUTEXT@@*/
+</script>
+<script>
+/*@@EPUB@@*/
+</script>
+<script>
+/*@@APP@@*/
+</script>
