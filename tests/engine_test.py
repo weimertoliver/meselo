@@ -97,7 +97,7 @@ with sync_playwright() as p:
     page.keyboard.press('Escape')
 
     print('6. Egyezés a Python Piperrel (zaj nélkül, determinisztikusan)')
-    text = 'Doktor Kovács Éva körülbelül három egész öt tized kilométerre lakik a második kerülettől.'
+    text = 'Doktor Kovács Éva, a szomszédunk, körülbelül három egész öt tized kilométerre lakik a második kerülettől.'
     pcm = page.evaluate("""(text) => new Promise((resolve) => {
         const w = new Worker(new URL('tts/' + window.MESELO_TTS.worker, document.baseURI), { type: 'module' });
         w.onmessage = (ev) => {

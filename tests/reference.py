@@ -1,4 +1,4 @@
-"""A böngészőbeli hangmotor kimenetének összevetése a Python Piperrel (ugyanazzal a kettős-mássalhangzó logikával).
+"""A böngészőbeli hangmotor kimenetének összevetése a Python Piperrel (ugyanazzal a kettős mássalhangzó- és vesszőlogikával).
 
 Futtatás az engine_test.py után (az menti a tests/shots/browser_pcm.npy fájlt):
     python tests/reference.py        # kell hozzá: pip install piper-tts onnxruntime
@@ -8,8 +8,9 @@ import numpy as np, onnxruntime as ort
 from piper import PiperVoice
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEXT = 'Doktor Kovács Éva körülbelül három egész öt tized kilométerre lakik a második kerülettől.'
-GEMINATE = 1.7
+TEXT = 'Doktor Kovács Éva, a szomszédunk, körülbelül három egész öt tized kilométerre lakik a második kerülettől.'
+GEMINATE = 1.35
+COMMA_PAUSE = 1.3
 NOT_CONSONANT = set('aɑeɛioøuyɒəˈˌːʲ ,.;:!?-–—…\'"()«»„”')
 
 voice = PiperVoice.load(os.path.join(ROOT, 'vendor/imre/hu_HU-imre-medium.onnx'))
@@ -37,13 +38,17 @@ def ids_scale(ph):
     for c in toks: pos.append(len(ids)); ids += IDS[c] + IDS['_']
     ids += IDS['$']
     sc = np.ones(len(ids), dtype=np.float32)
-    def mark(k, pad): sc[pos[k]:pos[k] + len(IDS[toks[k]]) + (len(IDS['_']) if pad else 0)] = GEMINATE
+    def mark(k, pad, f=GEMINATE): sc[pos[k]:pos[k] + len(IDS[toks[k]]) + (len(IDS['_']) if pad else 0)] = f
     for k in range(len(toks) - 1):
         a, b = toks[k], toks[k + 1]
         if a in NOT_CONSONANT or (b != a and b != 'ː'): continue
         mark(k, True); mark(k + 1, False)
         p = toks[k - 1] if k else None
         if b == 'ː' and ((p == 't' and a in 'sʃ') or (p == 'd' and a in 'zʒ')): mark(k - 1, True)
+    for k, c in enumerate(toks):
+        if c != ',': continue
+        mark(k, True, COMMA_PAUSE)
+        if k + 1 < len(toks) and toks[k + 1] == ' ': mark(k + 1, True, COMMA_PAUSE)
     return ids, sc
 
 def synth(text):

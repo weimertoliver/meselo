@@ -175,7 +175,9 @@ const TARGET_RMS = 0.12; // kb. −18 dBFS
 // Az espeak-ng a magyar „rr”-t mindig egyetlen r-nek ejti (szekérrel → sɛkeːrɛl): a szöveg r-jei alapján visszaállítjuk.
 // A többi kettős mássalhangzót jelöli (ll, ʃʃ, kː…), de Imre túl röviden ejti őket: a hangmodell
 // hangonkénti hosszszorzójával (dur_scale bemenet, lásd scripts/patch-model.py) megnyújtjuk.
-const GEMINATE = 1.7;
+const GEMINATE = 1.35;
+// a vessző utáni szünet (a vessző és az utána következő szóköz) ennyiszer hosszabb, mint amit Imre magától tartana
+const COMMA_PAUSE = 1.3;
 const NOT_CONSONANT = new Set(Array.from('aɑeɛioøuyɒəˈˌːʲ ,.;:!?-–—…\'"()«»„”'));
 
 function rUnits(text) {
@@ -209,9 +211,9 @@ function toIds(ph) {
   ids.push(...m['$']);
   // hangonkénti hosszszorzó: a kettős mássalhangzó mindkét fele (és a köztük lévő elválasztó) hosszabb
   const scale = new Float32Array(ids.length).fill(1);
-  const mark = (k, withPad) => {
+  const mark = (k, withPad, f = GEMINATE) => {
     const n = m[toks[k]].length + (withPad ? m['_'].length : 0);
-    scale.fill(GEMINATE, pos[k], pos[k] + n);
+    scale.fill(f, pos[k], pos[k] + n);
   };
   for (let k = 0; k + 1 < toks.length; k++) {
     const a = toks[k], b = toks[k + 1];
@@ -221,6 +223,12 @@ function toIds(ph) {
     // zárréshangok (cc → tsː, ccs → tʃː, ddz, ddzs): a zárelem is
     const p = toks[k - 1];
     if (b === 'ː' && ((p === 't' && (a === 's' || a === 'ʃ')) || (p === 'd' && (a === 'z' || a === 'ʒ')))) mark(k - 1, true);
+  }
+  // vessző: a szünet maga a vessző és az utána álló szóköz (az elválasztóikkal együtt)
+  for (let k = 0; k < toks.length; k++) {
+    if (toks[k] !== ',') continue;
+    mark(k, true, COMMA_PAUSE);
+    if (toks[k + 1] === ' ') mark(k + 1, true, COMMA_PAUSE);
   }
   return { ids, scale };
 }
