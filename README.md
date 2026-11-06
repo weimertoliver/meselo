@@ -27,20 +27,23 @@ Első felolvasáskor a Mesélő letölti Imre hangját (kb. 72 MB). Ez az eszkö
 | Mappa, fájl | Tartalom |
 | --- | --- |
 | `src/` | a felület (`page.html`, `style.css`), az app (`app.js`), az EPUB-olvasó (`epub.js`) és a magyar szövegelőkészítő (`hutext.js`) |
-| `tts/worker.mjs` | a hangmotor egy Web Workerben: fonémák espeak-ng-vel, hang ONNX Runtime Webbel |
+| `tts/worker.mjs` | a hangmotor egy Web Workerben: fonémák espeak-ng-vel, hang ONNX Runtime Webbel; a kettős mássalhangzók (szekérrel, villamossal) nyújtása |
+| `scripts/` | a hangmodell letöltése és kiegészítése (`patch-model.py`) |
 | `pwa/` | service worker, ikonok |
 | `vendor/` | ONNX Runtime Web, a WebAssemblyre fordított espeak-ng és Imre hangjának beállításai |
 | `docs/` | a kész webapp, ezt szolgálja ki a GitHub Pages |
 | `tests/` | egység- és böngészős tesztek |
 
 ```sh
-sh scripts/fetch-model.sh      # egyszer: Imre hangmodellje a vendor/imre/ mappába
+sh scripts/fetch-model.sh      # egyszer: Imre hangmodellje a vendor/imre/ mappába, kiegészítve a
+                               # hangonkénti hosszszorzóval a kettős mássalhangzókhoz (pip install onnx)
 node build.mjs                 # docs/ (a webapp) és dist/test.html (tesztoldal)
 
 node tests/hutext.test.cjs     # kiejtési szabályok
 python3 tests/make_epub.py tests/out
 python3 tests/e2e.py           # felület, EPUB-megnyitás, felolvasás böngészőhanggal
 python3 tests/engine_test.py   # Imre hangja Chromiumban
+python3 tests/reference.py     # a böngésző hangja egyezik a Python Piperrel (pip install piper-tts)
 python3 tests/fallback_test.py # ha a hangmotor nem indul, a böngésző hangjával olvas
 python3 tests/pwa_test.py      # telepíthetőség, offline működés
 ```
@@ -50,7 +53,7 @@ A böngészős tesztekhez Python Playwright és Chromium kell.
 ## Licencek és köszönet
 
 - **Mesélő**: GPL-3.0 (lásd `LICENSE`), mert az espeak-ng is GPL-3.0 licencű.
-- **Imre hangja**: [Piper](https://github.com/OHF-Voice/piper1-gpl) hangmodell az Open Home Foundation CC0 licencű magyar hangfelvételei alapján ([voice-datasets](https://github.com/NabuCasa/voice-datasets)), a [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) kiadásából.
+- **Imre hangja**: [Piper](https://github.com/OHF-Voice/piper1-gpl) hangmodell az Open Home Foundation CC0 licencű magyar hangfelvételei alapján ([voice-datasets](https://github.com/NabuCasa/voice-datasets)), a [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) kiadásából. A modellt egy hangonkénti hosszszorzó bemenettel egészítjük ki (`scripts/patch-model.py`), hogy a kettős mássalhangzók hosszabbak lehessenek; a hang maga változatlan.
 - **Fonémák**: [espeak-ng](https://github.com/rhasspy/espeak-ng) (GPL-3.0) és [piper-phonemize](https://github.com/wide-video/piper-phonemize) (MIT), WebAssemblyre fordítva ([@diffusionstudio/piper-wasm](https://www.npmjs.com/package/@diffusionstudio/piper-wasm)). A `piper_phonemize.data` csak a magyar és az angol nyelvi adatokat tartalmazza.
 - **Futtatás**: [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) 1.22.0 (MIT, Copyright © Microsoft Corporation).
 - **Betűtípusok**: Literata és IBM Plex Sans (SIL Open Font License), a Google Fonts-ról.

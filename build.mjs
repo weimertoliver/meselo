@@ -3,7 +3,8 @@
 //   docs/          – a telepíthető webapp (PWA), ezt szolgálja ki a GitHub Pages
 //   dist/test.html – helyi tesztoldal ugyanazzal a kóddal (a tesztek ezt használják)
 //
-// Előfeltétel: vendor/imre/hu_HU-imre-medium.onnx (letöltés: scripts/fetch-model.sh)
+// Előfeltétel: vendor/imre/hu_HU-imre-medium.dur.onnx – Imre modellje a hangonkénti hosszszorzóval
+//   (letöltés és kiegészítés: sh scripts/fetch-model.sh)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -15,14 +16,17 @@ const guard = (s, name) => {
 };
 const stripMap = (s) => s.replace(/\n?\/\/# sourceMappingURL=\S+\s*$/, '\n');
 
-const MODEL = './vendor/imre/hu_HU-imre-medium.onnx';
+const MODEL = './vendor/imre/hu_HU-imre-medium.dur.onnx';
 if (!existsSync(at(MODEL))) throw new Error(`Hiányzik a hangmodell: ${MODEL} (futtasd: sh scripts/fetch-model.sh)`);
 
 // ── Beépített hang: worker, ONNX Runtime, espeak-ng, Imre hangmodellje darabokban ──
 function buildTts(dir) {
   rmSync(at(dir), { recursive: true, force: true });
   mkdirSync(at(dir + 'imre/'), { recursive: true });
-  writeFileSync(at(dir + 'worker.mjs'), read('./tts/worker.mjs'));
+  // a worker neve a tartalmából: frissítéskor a még futó régi service worker se adhasson régi workert az új oldalhoz
+  const workerSrc = read('./tts/worker.mjs');
+  const worker = `worker-${createHash('sha256').update(workerSrc).digest('hex').slice(0, 8)}.mjs`;
+  writeFileSync(at(dir + worker), workerSrc);
   writeFileSync(at(dir + 'ort.wasm.min.mjs'), stripMap(read('./vendor/ort/ort.wasm.min.mjs')));
   writeFileSync(at(dir + 'ort-wasm-simd-threaded.mjs'), stripMap(read('./vendor/ort/ort-wasm-simd-threaded.mjs')));
   copyFileSync(at('./vendor/ort/ort-wasm-simd-threaded.wasm'), at(dir + 'ort-wasm-simd-threaded.wasm'));
@@ -35,18 +39,21 @@ function buildTts(dir) {
   writeFileSync(at(dir + 'imre/config.json'), JSON.stringify({
     audio: voice.audio, espeak: voice.espeak, inference: voice.inference, phoneme_id_map: voice.phoneme_id_map,
   }));
-  // 13 MB-os darabok: kisebb letöltési egységek, és minden tárhely elfogadja őket
+  // 13 MB-os darabok: kisebb letöltési egységek, és minden tárhely elfogadja őket.
+  // A névben a modell lenyomata: ha a modell változik, a telepített app az új darabokat tölti le.
   const PART = 13 * 1024 * 1024;
   const model = readFileSync(at(MODEL));
+  const tag = createHash('sha256').update(model).digest('hex').slice(0, 8);
   const parts = [];
   for (let o = 0, k = 1; o < model.length; o += PART, k++) {
-    const path = `imre/model-${k}.bin`;
+    const path = `imre/model-${tag}-${k}.bin`;
     writeFileSync(at(dir + path), model.subarray(o, Math.min(o + PART, model.length)));
     parts.push({ part: k, path, size: Math.min(PART, model.length - o) });
   }
   const size = (p) => statSync(at(dir + p)).size;
   return {
     cache: 'meselo-hang-v2',
+    worker,
     config: 'imre/config.json',
     files: [
       { name: 'ortWasm', path: 'ort-wasm-simd-threaded.wasm', size: size('ort-wasm-simd-threaded.wasm') },
@@ -142,7 +149,7 @@ writeFileSync(at(SITE + 'index.html'), html);
 
 // az app héja (a nagy hangfájlokat a hangmotor maga tárolja)
 const SHELL = ['./', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
-  'tts/worker.mjs', 'tts/ort.wasm.min.mjs', 'tts/ort-wasm-simd-threaded.mjs', 'tts/piper_phonemize.mjs', 'tts/imre/config.json'];
+  `tts/${manifest.worker}`, 'tts/ort.wasm.min.mjs', 'tts/ort-wasm-simd-threaded.mjs', 'tts/piper_phonemize.mjs', 'tts/imre/config.json'];
 const version = createHash('sha256')
   .update(html)
   .update(SHELL.filter((p) => p.startsWith('tts/')).map((p) => readFileSync(at(SITE + p))).join(''))

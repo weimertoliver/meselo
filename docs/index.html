@@ -825,7 +825,7 @@ kbd {
 <input type="file" id="fileInput" accept=".epub,application/epub+zip" hidden>
 
 <script>
-window.MESELO_TTS = {"cache":"meselo-hang-v2","config":"imre/config.json","files":[{"name":"ortWasm","path":"ort-wasm-simd-threaded.wasm","size":11210254},{"name":"phonWasm","path":"piper_phonemize.wasm","size":635212},{"name":"phonData","path":"piper_phonemize.data","size":990354},{"part":1,"path":"imre/model-1.bin","size":13631488},{"part":2,"path":"imre/model-2.bin","size":13631488},{"part":3,"path":"imre/model-3.bin","size":13631488},{"part":4,"path":"imre/model-4.bin","size":13631488},{"part":5,"path":"imre/model-5.bin","size":8623244}]};
+window.MESELO_TTS = {"cache":"meselo-hang-v2","worker":"worker-c20de62c.mjs","config":"imre/config.json","files":[{"name":"ortWasm","path":"ort-wasm-simd-threaded.wasm","size":11210254},{"name":"phonWasm","path":"piper_phonemize.wasm","size":635212},{"name":"phonData","path":"piper_phonemize.data","size":990354},{"part":1,"path":"imre/model-b35d5d1c-1.bin","size":13631488},{"part":2,"path":"imre/model-b35d5d1c-2.bin","size":13631488},{"part":3,"path":"imre/model-b35d5d1c-3.bin","size":13631488},{"part":4,"path":"imre/model-b35d5d1c-4.bin","size":13631488},{"part":5,"path":"imre/model-b35d5d1c-5.bin","size":8623220}]};
 window.MESELO_SITE = true;
 </script>
 <script>
@@ -2112,7 +2112,7 @@ window.MESELO_SITE = true;
           reject(this.error);
         };
         let w;
-        try { w = new Worker(new URL('tts/worker.mjs', document.baseURI), { type: 'module' }); }
+        try { w = new Worker(new URL('tts/' + (this.manifest.worker || 'worker.mjs'), document.baseURI), { type: 'module' }); }
         catch (e) { fail('engine', String(e && e.message)); return; }
         this.worker = w;
         w.onerror = (ev) => { try { ev.preventDefault(); } catch (e) { /* */ } fail('engine', ev && ev.message); };

@@ -19,7 +19,7 @@ def check(c, m):
     if not c: fails.append(m)
 with sync_playwright() as p:
     b = p.chromium.launch()
-    for label, route in [('hiányzó worker', '**/tts/worker.mjs'), ('hiányzó modelldarab', '**/tts/imre/model-3.bin')]:
+    for label, route in [('hiányzó worker', '**/tts/worker-*.mjs'), ('hiányzó modelldarab', '**/tts/imre/model-*-3.bin')]:
         print(label)
         ctx = b.new_context(locale='hu-HU')
         ctx.add_init_script(FAKE)

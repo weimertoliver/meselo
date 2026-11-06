@@ -215,7 +215,7 @@
           reject(this.error);
         };
         let w;
-        try { w = new Worker(new URL('tts/worker.mjs', document.baseURI), { type: 'module' }); }
+        try { w = new Worker(new URL('tts/' + (this.manifest.worker || 'worker.mjs'), document.baseURI), { type: 'module' }); }
         catch (e) { fail('engine', String(e && e.message)); return; }
         this.worker = w;
         w.onerror = (ev) => { try { ev.preventDefault(); } catch (e) { /* */ } fail('engine', ev && ev.message); };

@@ -1,8 +1,8 @@
 /* Mesélő · service worker: az app internet nélkül is induljon */
-const VERSION = '83996d58c02f';
+const VERSION = '03867dfc67f5';
 const APP_CACHE = `meselo-app-${VERSION}`;
 const FONT_CACHE = 'meselo-fonts-v1';
-const SHELL = ["./","manifest.webmanifest","icons/favicon.svg","icons/icon-192.png","icons/icon-512.png","tts/worker.mjs","tts/ort.wasm.min.mjs","tts/ort-wasm-simd-threaded.mjs","tts/piper_phonemize.mjs","tts/imre/config.json"];
+const SHELL = ["./","manifest.webmanifest","icons/favicon.svg","icons/icon-192.png","icons/icon-512.png","tts/worker-c20de62c.mjs","tts/ort.wasm.min.mjs","tts/ort-wasm-simd-threaded.mjs","tts/piper_phonemize.mjs","tts/imre/config.json"];
 const SHELL_URLS = new Set(SHELL.map((p) => new URL(p, self.registration.scope).href));
 
 self.addEventListener('install', (event) => {

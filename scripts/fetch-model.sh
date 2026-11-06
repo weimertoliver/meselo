@@ -1,5 +1,6 @@
 #!/bin/sh
-# Imre hangmodelljének letöltése a sherpa-onnx kiadásából (Piper hu_HU-imre-medium)
+# Imre hangmodelljének letöltése a sherpa-onnx kiadásából (Piper hu_HU-imre-medium),
+# majd kiegészítése a hangonkénti hosszszorzóval (kell hozzá: pip install onnx)
 set -e
 cd "$(dirname "$0")/.."
 mkdir -p vendor/imre
@@ -8,4 +9,5 @@ curl -sSL -o "$tmp/m.tar.bz2" https://github.com/k2-fsa/sherpa-onnx/releases/dow
 tar -xjf "$tmp/m.tar.bz2" -C "$tmp" --exclude='*/espeak-ng-data/*'
 cp "$tmp"/vits-piper-hu_HU-imre-medium/hu_HU-imre-medium.onnx "$tmp"/vits-piper-hu_HU-imre-medium/hu_HU-imre-medium.onnx.json "$tmp"/vits-piper-hu_HU-imre-medium/MODEL_CARD vendor/imre/
 rm -rf "$tmp"
-echo "kész: vendor/imre/hu_HU-imre-medium.onnx"
+python3 scripts/patch-model.py vendor/imre/hu_HU-imre-medium.onnx vendor/imre/hu_HU-imre-medium.dur.onnx
+echo "kész: vendor/imre/hu_HU-imre-medium.dur.onnx"

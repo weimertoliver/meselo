@@ -114,6 +114,16 @@ async function init(manifest) {
   ready = true;
   post({ type: 'ready', sampleRate: voiceCfg.audio.sample_rate });
   pump();
+  prune(manifest, cache);
+}
+
+// a sikeres indulás után a korábbi hangmodell-darabok és régi tárolók törlése (helyet szabadít fel a telefonon)
+async function prune(manifest, cache) {
+  try {
+    const keep = new Set(manifest.files.map((f) => new URL(f.path, BASE).href));
+    if (cache) for (const req of await cache.keys()) if (!keep.has(req.url)) await cache.delete(req);
+    for (const name of await caches.keys()) if (name.startsWith('meselo-hang-') && name !== manifest.cache) await caches.delete(name);
+  } catch (e) { /* nem baj, legfeljebb foglalja a helyet */ }
 }
 
 // ── Fonémák ─────────────────────────────────────────────────────────────
@@ -161,16 +171,58 @@ function sentences(o) {
 const GLIDE = /i(?=[aɑeɛioøuy])/g;
 const TARGET_RMS = 0.12; // kb. −18 dBFS
 
+// ── Kettős mássalhangzók (szekérrel, villamossal, akkor) ────────────────
+// Az espeak-ng a magyar „rr”-t mindig egyetlen r-nek ejti (szekérrel → sɛkeːrɛl): a szöveg r-jei alapján visszaállítjuk.
+// A többi kettős mássalhangzót jelöli (ll, ʃʃ, kː…), de Imre túl röviden ejti őket: a hangmodell
+// hangonkénti hosszszorzójával (dur_scale bemenet, lásd scripts/patch-model.py) megnyújtjuk.
+const GEMINATE = 1.7;
+const NOT_CONSONANT = new Set(Array.from('aɑeɛioøuyɒəˈˌːʲ ,.;:!?-–—…\'"()«»„”'));
+
+function rUnits(text) {
+  const t = text.toLowerCase();
+  const out = [];
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] !== 'r') continue;
+    if (t[i + 1] === 'r') { out.push(true); i++; } else out.push(false);
+  }
+  return out;
+}
+
+function restoreRR(text, sents) {
+  const units = rUnits(text);
+  if (!units.includes(true)) return sents;
+  const count = sents.reduce((n, s) => n + (s.match(/r/g) || []).length, 0);
+  if (count !== units.length) return sents; // nem egyértelmű (pl. idegen szó, szám): marad, ahogy az espeak mondta
+  let k = 0;
+  return sents.map((s) => s.replace(/r/g, () => (units[k++] ? 'rr' : 'r')));
+}
+
 function toIds(ph) {
   const m = voiceCfg.phoneme_id_map;
+  const toks = Array.from(ph.normalize('NFD')).filter((c) => m[c]);
   const ids = [...m['^'], ...m['_']];
-  for (const c of Array.from(ph.normalize('NFD'))) {
-    const v = m[c];
-    if (!v) continue;
-    ids.push(...v, ...m['_']);
+  const pos = [];
+  for (const c of toks) {
+    pos.push(ids.length);
+    ids.push(...m[c], ...m['_']);
   }
   ids.push(...m['$']);
-  return ids;
+  // hangonkénti hosszszorzó: a kettős mássalhangzó mindkét fele (és a köztük lévő elválasztó) hosszabb
+  const scale = new Float32Array(ids.length).fill(1);
+  const mark = (k, withPad) => {
+    const n = m[toks[k]].length + (withPad ? m['_'].length : 0);
+    scale.fill(GEMINATE, pos[k], pos[k] + n);
+  };
+  for (let k = 0; k + 1 < toks.length; k++) {
+    const a = toks[k], b = toks[k + 1];
+    if (NOT_CONSONANT.has(a) || (b !== a && b !== 'ː')) continue;
+    mark(k, true);
+    mark(k + 1, false);
+    // zárréshangok (cc → tsː, ccs → tʃː, ddz, ddzs): a zárelem is
+    const p = toks[k - 1];
+    if (b === 'ː' && ((p === 't' && (a === 's' || a === 'ʃ')) || (p === 'd' && (a === 'z' || a === 'ʒ')))) mark(k - 1, true);
+  }
+  return { ids, scale };
 }
 
 // ── Felolvasás ──────────────────────────────────────────────────────────
@@ -181,14 +233,15 @@ async function synth(text, lengthScale, noise) {
   const sr = voiceCfg.audio.sample_rate;
   const phon = await phonemize(text);
   const parts = [];
-  for (const s of sentences(phon)) {
-    const ids = toIds(s.replace(GLIDE, 'iʲ'));
+  for (const s of restoreRR(text, sentences(phon))) {
+    const { ids, scale } = toIds(s.replace(GLIDE, 'iʲ'));
     if (ids.length <= 4) continue;
     const feeds = {
       input: new ort.Tensor('int64', BigInt64Array.from(ids, (x) => BigInt(x)), [1, ids.length]),
       input_lengths: new ort.Tensor('int64', BigInt64Array.from([BigInt(ids.length)]), [1]),
       scales: new ort.Tensor('float32', Float32Array.from([ns, lengthScale, nw]), [3]),
     };
+    if (session.inputNames.includes('dur_scale')) feeds.dur_scale = new ort.Tensor('float32', scale, [1, 1, ids.length]);
     const res = await session.run(feeds);
     const a = Float32Array.from(res.output.data);
     // egyforma hangerő minden mondatnál: a beszédrészek átlagos szintjére igazítunk, a csúcsokat korlátozzuk
