@@ -52,7 +52,7 @@
 
   // ── Állapot ───────────────────────────────────────────────────────────
   const NEURAL_ID = 'neural:imre';
-  const DEFAULTS = { v: 2, voice: NEURAL_ID, rate: 1, pitch: 1, pause: 'mid', font: 1, showSpoken: true, dict: '', cps: 15, allVoices: false };
+  const DEFAULTS = { v: 2, voice: NEURAL_ID, rate: 1, pitch: 1, pause: 'mid', font: 1, showSpoken: true, dict: '', cps: 15, allVoices: false, room: true };
   const savedSettings = LS.get('meselo:settings', {});
   if ((savedSettings.v || 1) < 2) {
     // az első változat „automatikus” böngészőhangja helyett a beépített Imre hang az alapértelmezett
@@ -74,7 +74,7 @@
   const synth = (() => { try { return window.speechSynthesis || null; } catch (e) { return null; } })();
   const canSpeak = !!(synth && typeof window.SpeechSynthesisUtterance === 'function');
 
-  const PAUSE = { sent: 160, line: 420, head: 950, sep: 1400, para: { short: 300, mid: 650, long: 1100 } };
+  const PAUSE = { sent: 380, line: 450, head: 1000, sep: 1500, para: { short: 450, mid: 800, long: 1200 } };
   const pauseMs = (kind) => Math.round((kind === 'para' ? (PAUSE.para[S.set.pause] || 650) : (PAUSE[kind] || 200)) / clamp(S.set.rate, 0.5, 2));
 
   // 16 bites, egycsatornás WAV a mondat hangjából és a mögé tett csendből
@@ -92,6 +92,62 @@
       v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true);
     }
     return new Blob([buf], { type: 'audio/wav' });
+  }
+
+  // Szobahang: egy kis szoba halk lecsengése a hang mögött. A száraz, „stúdióban lebegő”
+  // gépi hang így természetesebb, a vocoder fémes mellékzöngéit is elfedi kicsit.
+  const ROOM = { rt60: 0.38, tail: 0.42, wet: 0.2, dry: 0.9 };
+  let roomIR = null;
+  function makeRoomIR(sr) {
+    const len = Math.round(sr * ROOM.tail);
+    const ir = new Float32Array(len);
+    let seed = 20261106;
+    const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return (seed / 4294967296) * 2 - 1; };
+    const pre = Math.round(sr * 0.008);
+    [[0.011, 0.55], [0.017, -0.42], [0.023, 0.33], [0.031, -0.25], [0.043, 0.18]].forEach(([t, g]) => {
+      const i = pre + Math.round(t * sr);
+      if (i < len) ir[i] += g;
+    });
+    let lp = 0;
+    for (let i = pre; i < len; i++) {
+      const t = (i - pre) / sr;
+      const k = 0.35 + 0.55 * Math.min(1, t / 0.3); // a magasak gyorsabban halnak el
+      lp = lp * k + rnd() * (1 - k);
+      ir[i] += lp * Math.exp((-6.91 * t) / ROOM.rt60) * 0.9;
+    }
+    let e = 0;
+    for (let i = 0; i < len; i++) e += ir[i] * ir[i];
+    const g = 1 / Math.sqrt(e || 1);
+    for (let i = 0; i < len; i++) ir[i] *= g;
+    return ir;
+  }
+  async function withRoom(item) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return item;
+    try {
+      const sr = item.sampleRate;
+      if (!roomIR || roomIR.sr !== sr) roomIR = { sr, data: makeRoomIR(sr) };
+      const tail = Math.round(sr * ROOM.tail);
+      const ctx = new OAC(1, item.pcm.length + tail, sr);
+      const src = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, item.pcm.length, sr);
+      buf.getChannelData(0).set(item.pcm);
+      src.buffer = buf;
+      const conv = ctx.createConvolver();
+      conv.normalize = false;
+      const irb = ctx.createBuffer(1, roomIR.data.length, sr);
+      irb.getChannelData(0).set(roomIR.data);
+      conv.buffer = irb;
+      const wet = ctx.createGain();
+      wet.gain.value = ROOM.wet;
+      const dry = ctx.createGain();
+      dry.gain.value = ROOM.dry;
+      src.connect(dry).connect(ctx.destination);
+      src.connect(conv).connect(wet).connect(ctx.destination);
+      src.start();
+      const out = await ctx.startRendering();
+      return Object.assign({}, item, { pcm: out.getChannelData(0), tail: ROOM.tail });
+    } catch (e) { return item; }
   }
 
   // ── Beépített neurális hang (Imre): a böngészőben fut, egy Web Workerben ──
@@ -183,15 +239,16 @@
       });
       return this.readyPromise;
     },
+    key(text) { return `${S.set.rate}|${S.set.room ? 1 : 0}|${text}`; },
     get(text) {
-      const key = `${S.set.rate}|${text}`;
+      const key = this.key(text);
       let p = this.cache.get(key);
       if (p) { this.cache.delete(key); this.cache.set(key, p); return p; }
       p = new Promise((resolve, reject) => {
         const id = this.nextId++;
         this.jobs.set(id, { resolve, reject, key });
         this.worker.postMessage({ type: 'synth', id, text, lengthScale: 1 / clamp(S.set.rate, 0.5, 2) });
-      });
+      }).then((item) => (S.set.room ? withRoom(item) : item));
       p.catch(() => { if (this.cache.get(key) === p) this.cache.delete(key); });
       this.cache.set(key, p);
       while (this.cache.size > 16) this.cache.delete(this.cache.keys().next().value);
@@ -199,7 +256,7 @@
     },
     flush(keepTexts) {
       if (!this.worker) return;
-      const keepKeys = new Set((keepTexts || []).map((t) => `${S.set.rate}|${t}`));
+      const keepKeys = new Set((keepTexts || []).map((t) => this.key(t)));
       const keepIds = [];
       for (const [id, j] of this.jobs) {
         if (keepKeys.has(j.key)) { keepIds.push(id); continue; }
@@ -792,7 +849,7 @@
     S.errors = 0;
     setPlayUi();
     if (!S.playing) return;
-    Neural.play(item, pauseMs(sg.pause), () => {
+    Neural.play(item, Math.max(0, pauseMs(sg.pause) - (item.tail || 0) * 1000), () => {
       if (my !== S.token) return;
       learnFrom(sg.text.length, item.sec * S.set.rate);
       finished(sg, my, 0);
@@ -974,6 +1031,7 @@
     hint.classList.remove('warn');
     chip.classList.remove('warn');
     $('#pitchField').hidden = useNeural();
+    $('#roomFxRow').hidden = !useNeural();
     showSpoken();
     setPlayUi();
     if (S.set.voice === NEURAL_ID && Neural.available) {
@@ -1077,6 +1135,7 @@
     document.documentElement.style.setProperty('--read-scale', String(S.set.font));
     $('#fontOut').textContent = `${Math.round(S.set.font * 100)}%`;
     $('#showSpoken').checked = !!S.set.showSpoken;
+    $('#roomFx').checked = !!S.set.room;
     $('#allVoices').checked = !!S.set.allVoices;
     $('#dictArea').value = S.set.dict;
     renderDictCount();
@@ -1353,6 +1412,12 @@
       if (was) play();
     });
     $('#allVoices').addEventListener('change', (e) => { S.set.allVoices = e.target.checked; saveSettings(); renderVoices(); });
+    $('#roomFx').addEventListener('change', (e) => {
+      S.set.room = e.target.checked;
+      saveSettings();
+      Neural.clearCache();
+      if (S.playing && useNeural()) jumpTo(S.seg);
+    });
     $('#rateRange').addEventListener('input', (e) => { $('#rateOut').textContent = fmtRate(Number(e.target.value)); });
     $('#rateRange').addEventListener('change', (e) => setRate(Number(e.target.value), true));
     $('#pitchRange').addEventListener('input', (e) => { $('#pitchOut').textContent = huNum(Number(e.target.value), 2, 2); });

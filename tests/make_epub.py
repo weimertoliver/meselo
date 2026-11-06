@@ -157,6 +157,25 @@ write(os.path.join(OUT, 'drm-vedett.epub'), [
     ('OEBPS/text/ch2.xhtml', CH2_LATIN2.encode('iso-8859-2')),
     ('OEBPS/text/ch3.xhtml', CH3),
 ])
+# rosszul konvertált magyar könyv „en” nyelvjelöléssel: helyettesítő és különálló ékezetek, szétbontott betűk
+BROKEN = xhtml('Hibás ékezetek', """<h1>Elsõ fejezet</h1>
+<p>Az ôsz beköszöntött, és a kertben Kôszegi úr gyûjtötte a leveleket.</p>
+<p>O¨ro¨mmel nézte a bu˝vo¨s fényeket, majd a´tment a szomszédba.</p>
+<p>Ekkor jött az o\u0308reg postás, és átadott egy levelet a mu\u030Bhelyrõl.</p>
+<p>Ez a mondat azért kell, hogy a szöveg elég hosszú legyen, és a nyelvfelismerés is működjön: ha a könyv magyar, akkor az ékezeteket ki kell javítani, de csak akkor.</p>""")
+OPF_EN = OPF3.replace('<dc:language>hu</dc:language>', '<dc:language>en</dc:language>').replace('A próbakönyv', 'Rossz ékezetû könyv').replace('meselo-teszt3', 'meselo-teszt-ekezet')
+NAV1 = xhtml('Tartalom', '''<nav epub:type="toc"><ol><li><a href="text/broken.xhtml">Elsõ fejezet</a></li></ol></nav>''')
+write(os.path.join(OUT, 'rossz-ekezet.epub'), [
+    ('META-INF/container.xml', CONTAINER),
+    ('OEBPS/content.opf', OPF_EN.replace('<item id="ch1" href="text/fejezet%201.xhtml"', '<item id="ch1" href="text/broken.xhtml"')),
+    ('OEBPS/nav.xhtml', NAV1),
+    ('OEBPS/text/broken.xhtml', BROKEN),
+    ('OEBPS/text/cover.xhtml', COVER),
+    ('OEBPS/images/cover.png', png(60, 90, (90, 30, 30))),
+    ('OEBPS/text/ch2.xhtml', CH3),
+    ('OEBPS/text/ch3.xhtml', CH3),
+    ('OEBPS/text/notes.xhtml', NOTES),
+])
 with open(os.path.join(OUT, 'nem-epub.epub'), 'wb') as f:
     f.write(b'Ez nem zip, csak szoveg.' * 10)
 print('kész:', sorted(os.listdir(OUT)))

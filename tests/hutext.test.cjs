@@ -109,6 +109,17 @@ const cases = [
   ['Az 1848. évi törvény', 'Az ezernyolcszáznegyvennyolcadik évi törvény'],
   ['a 2,5-szeresére', 'A két egész öt tizedszeresére'],
   ['A & B', 'A és B'],
+  ['Kõszeg és Petõfi', 'Kőszeg és Petőfi'],
+  ['Az ôsz szépen jött', 'Az ősz szépen jött'],
+  ['Ûrhajó szállt fel', 'Űrhajó szállt fel'],
+  ['az ũrtartalom', 'Az űrtartalom'],
+  ['o¨ro¨m és bu˝vo¨s', 'Öröm és bűvös'],
+  ['a´rvi´ztu˝ro˝ tu¨ko¨rfu´ro´ge´p', 'Árvíztűrő tükörfúrógép'],
+  ['v´ar a k´ep', 'Vár a kép'],
+  ['o\u0308ro\u0308m', 'Öröm'],
+  ['o\u030Bsz', 'Ősz'],
+  ['O\u0308tvös', 'Ötvös'],
+  ['to¨´r', 'Tőr'],
 ];
 
 let fail = 0;

@@ -174,13 +174,27 @@
   const isEnd = (rest) => /^\s*$/.test(rest);
 
   // ── Átalakító lépések ─────────────────────────────────────────────────
+  // Hibás ékezetek javítása. Régi, rosszul konvertált e-könyvekben gyakori:
+  //  – helyettesítő betűk: õ, ô → ő, û, ũ → ű (Latin-1-es vagy hiányos betűkészletből)
+  //  – különálló ékezetjel a betű után vagy előtt: o¨ → ö, a´ → á, o˝ → ő (PDF-ből készült szövegek)
+  //  – szétbontott (NFD) betűk: o + kombináló ékezet → ö
+  const SPACING_ACCENT = { '´': '́', 'ˊ': '́', '¨': '̈', '˝': '̋' };
+  const SUBST = { 'õ': 'ő', 'ô': 'ő', 'ŏ': 'ő', 'ǒ': 'ő', 'Õ': 'Ő', 'Ô': 'Ő', 'Ŏ': 'Ő', 'Ǒ': 'Ő',
+    'û': 'ű', 'ũ': 'ű', 'ŭ': 'ű', 'ǔ': 'ű', 'Û': 'Ű', 'Ũ': 'Ű', 'Ŭ': 'Ű', 'Ǔ': 'Ű' };
+  function fixLetters(text) {
+    let s = String(text || '').normalize('NFC');
+    s = s.replace(/([aeiouAEIOU])([´ˊ¨˝])/g, (m, v, a) => (v + SPACING_ACCENT[a]).normalize('NFC'));
+    s = s.replace(/([öüÖÜ])[´ˊ]/g, (m, v) => ({ ö: 'ő', ü: 'ű', Ö: 'Ő', Ü: 'Ű' })[v]);
+    s = s.replace(/([´ˊ¨˝])([aeiouAEIOU])/g, (m, a, v) => (v + SPACING_ACCENT[a]).normalize('NFC'));
+    return s.replace(/[õôŏǒÕÔŎǑûũŭǔÛŨŬǓ]/g, (c) => SUBST[c]);
+  }
+
   function cleanPass(s) {
-    s = s.normalize('NFC');
+    s = fixLetters(s);
     s = s.replace(/[­​-‍⁠﻿]/g, '');
-    // régi, Latin-1-es magyar e-könyvek: õ, û a helyes ő, ű helyett
-    s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
     return s.replace(/[\r\n\t]+/g, ' ');
   }
+
 
   function dialoguePass(s) {
     // gondolatjeles párbeszéd: a jelet nem mondjuk ki, csak szünetet tartunk
@@ -549,7 +563,7 @@
   }
 
   const api = {
-    normalizeForSpeech, segmentBlock, splitSentences, compileDict, hasSpeakable,
+    normalizeForSpeech, segmentBlock, splitSentences, compileDict, hasSpeakable, fixLetters,
     cardinal, ordinal, dateDay, numAttach, attach, romanToInt, MONTHS,
   };
   root.HuText = api;

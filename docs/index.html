@@ -766,6 +766,7 @@ kbd {
       <label for="voiceSel">Hang</label>
       <select id="voiceSel"></select>
       <p class="hint" id="voiceHint"></p>
+      <label class="check" for="roomFx" id="roomFxRow"><input type="checkbox" id="roomFx"> Szobahang: természetesebb, kevésbé gépies hangzás</label>
       <label class="check" for="allVoices"><input type="checkbox" id="allVoices"> Más nyelvű hangok is látszanak</label>
     </div>
     <div class="field">
@@ -1004,13 +1005,27 @@ window.MESELO_SITE = true;
   const isEnd = (rest) => /^\s*$/.test(rest);
 
   // ── Átalakító lépések ─────────────────────────────────────────────────
+  // Hibás ékezetek javítása. Régi, rosszul konvertált e-könyvekben gyakori:
+  //  – helyettesítő betűk: õ, ô → ő, û, ũ → ű (Latin-1-es vagy hiányos betűkészletből)
+  //  – különálló ékezetjel a betű után vagy előtt: o¨ → ö, a´ → á, o˝ → ő (PDF-ből készült szövegek)
+  //  – szétbontott (NFD) betűk: o + kombináló ékezet → ö
+  const SPACING_ACCENT = { '´': '́', 'ˊ': '́', '¨': '̈', '˝': '̋' };
+  const SUBST = { 'õ': 'ő', 'ô': 'ő', 'ŏ': 'ő', 'ǒ': 'ő', 'Õ': 'Ő', 'Ô': 'Ő', 'Ŏ': 'Ő', 'Ǒ': 'Ő',
+    'û': 'ű', 'ũ': 'ű', 'ŭ': 'ű', 'ǔ': 'ű', 'Û': 'Ű', 'Ũ': 'Ű', 'Ŭ': 'Ű', 'Ǔ': 'Ű' };
+  function fixLetters(text) {
+    let s = String(text || '').normalize('NFC');
+    s = s.replace(/([aeiouAEIOU])([´ˊ¨˝])/g, (m, v, a) => (v + SPACING_ACCENT[a]).normalize('NFC'));
+    s = s.replace(/([öüÖÜ])[´ˊ]/g, (m, v) => ({ ö: 'ő', ü: 'ű', Ö: 'Ő', Ü: 'Ű' })[v]);
+    s = s.replace(/([´ˊ¨˝])([aeiouAEIOU])/g, (m, a, v) => (v + SPACING_ACCENT[a]).normalize('NFC'));
+    return s.replace(/[õôŏǒÕÔŎǑûũŭǔÛŨŬǓ]/g, (c) => SUBST[c]);
+  }
+
   function cleanPass(s) {
-    s = s.normalize('NFC');
+    s = fixLetters(s);
     s = s.replace(/[­​-‍⁠﻿]/g, '');
-    // régi, Latin-1-es magyar e-könyvek: õ, û a helyes ő, ű helyett
-    s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
     return s.replace(/[\r\n\t]+/g, ' ');
   }
+
 
   function dialoguePass(s) {
     // gondolatjeles párbeszéd: a jelet nem mondjuk ki, csak szünetet tartunk
@@ -1379,7 +1394,7 @@ window.MESELO_SITE = true;
   }
 
   const api = {
-    normalizeForSpeech, segmentBlock, splitSentences, compileDict, hasSpeakable,
+    normalizeForSpeech, segmentBlock, splitSentences, compileDict, hasSpeakable, fixLetters,
     cardinal, ordinal, dateDay, numAttach, attach, romanToInt, MONTHS,
   };
   root.HuText = api;
@@ -1590,17 +1605,28 @@ window.MESELO_SITE = true;
     return false;
   }
 
-  function cleanInline(t, fixHu) {
-    let s = t.replace(/\s+/g, ' ')
+  function cleanInline(t) {
+    const s = t.replace(/\s+/g, ' ')
       .replace(new RegExp(` ?${MARK_BR} ?`, 'g'), '\n')
       .replace(/\n{2,}/g, '\n')
       .replace(/^\n+|\n+$/g, '')
       .trim();
-    if (fixHu) s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
     return s.normalize('NFC');
   }
 
-  function extractBlocks(doc, fixHu) {
+  // Magyar-e a szöveg? A metaadat gyakran hiányzik vagy hibás (sok magyar e-könyvön „en” áll)
+  const HU_WORDS = new Set(['és', 'hogy', 'nem', 'egy', 'az', 'a', 'is', 'de', 'meg', 'csak', 'már', 'még', 'volt',
+    'van', 'mint', 'ha', 'ez', 'azt', 'mert', 'el', 'ki', 'be', 'fel', 'le', 'sem', 'vagy', 'pedig', 'aki', 'ami']);
+  function looksHungarian(text) {
+    const words = String(text).toLowerCase().match(/\p{L}+/gu) || [];
+    if (words.length < 40) return /[őűõû]/i.test(text);
+    let hits = 0;
+    for (const w of words) if (HU_WORDS.has(w)) hits++;
+    return hits / words.length > 0.08;
+  }
+  const fixLetters = (t) => (root.HuText && root.HuText.fixLetters ? root.HuText.fixLetters(t) : String(t).normalize('NFC'));
+
+  function extractBlocks(doc) {
     const body = doc.body || doc.getElementsByTagName('body')[0] || doc.documentElement;
     const blocks = [];
     const ids = new Map();
@@ -1621,7 +1647,7 @@ window.MESELO_SITE = true;
     }
 
     function emit(type, acc, tag) {
-      const text = cleanInline(acc.t, fixHu);
+      const text = cleanInline(acc.t);
       if (!text) { pending.push(...acc.ids); return; }
       const idx = blocks.length;
       for (const id of pending.concat(acc.ids)) if (!ids.has(id)) ids.set(id, idx);
@@ -1758,7 +1784,6 @@ window.MESELO_SITE = true;
     const author = els(opf, 'creator').slice(0, 3).map((e) => clean(e.textContent)).filter(Boolean).join(', ');
     const lang = meta('language');
     const identifier = meta('identifier');
-    const fixHu = !lang || /^hu/i.test(lang);
 
     const manifest = new Map();
     for (const it of els(opf, 'item')) {
@@ -1797,7 +1822,7 @@ window.MESELO_SITE = true;
       const bytes = await zip.bytes(item.path);
       if (!bytes) continue;
       const doc = parseXHTML(decodeText(bytes));
-      const { blocks, ids } = extractBlocks(doc, fixHu);
+      const { blocks, ids } = extractBlocks(doc);
       if (!blocks.some((b) => b.type !== 'sep')) { waiting.push(item.path); continue; }
       if (!chapters.length) {
         const sample = blocks.map((b) => b.text).join(' ').slice(0, 4000);
@@ -1812,6 +1837,11 @@ window.MESELO_SITE = true;
     }
     waiting.forEach((pth) => pathToChapter.set(pth, Math.max(0, chapters.length - 1)));
     if (!chapters.length) throw new EpubError(encXml || drmFiles ? 'drm' : 'notext');
+
+    // hibás ékezetek (õ, û, o¨, szétbontott betűk) javítása, ha a könyv magyar
+    const sample = chapters.slice(0, 4).map((c) => c.blocks.map((b) => b.text).join(' ')).join(' ').slice(0, 30000);
+    const fixHu = /^hu/i.test(lang) || (!/^(?:de|fr|es|it|pt|ro|sk|cs|pl|hr|sl|tr|vi|fi|et)\b/i.test(lang) && looksHungarian(sample));
+    if (fixHu) for (const c of chapters) for (const b of c.blocks) b.text = fixLetters(b.text);
 
     let raw = [];
     try {
@@ -1848,9 +1878,12 @@ window.MESELO_SITE = true;
     }
 
     const chars = chapters.reduce((n, c) => n + c.blocks.reduce((m, b) => m + (b.type === 'sep' ? 0 : b.text.length), 0), 0);
+    const fx = (t) => (fixHu ? fixLetters(t) : t);
+    toc.forEach((t) => { t.title = fx(t.title); });
+    chapters.forEach((c) => { c.title = fx(c.title); });
     return {
       id: 'b' + hash([identifier, title, author, chars].join('|')),
-      title, author, lang,
+      title: fx(title), author: fx(author), lang,
       chapters: chapters.map((c) => ({ title: c.title, blocks: c.blocks })),
       toc: toc.length ? toc : chapters.map((c, i) => ({ title: c.title, ch: i, block: 0, level: 0 })),
       cover,
@@ -1916,7 +1949,7 @@ window.MESELO_SITE = true;
 
   // ── Állapot ───────────────────────────────────────────────────────────
   const NEURAL_ID = 'neural:imre';
-  const DEFAULTS = { v: 2, voice: NEURAL_ID, rate: 1, pitch: 1, pause: 'mid', font: 1, showSpoken: true, dict: '', cps: 15, allVoices: false };
+  const DEFAULTS = { v: 2, voice: NEURAL_ID, rate: 1, pitch: 1, pause: 'mid', font: 1, showSpoken: true, dict: '', cps: 15, allVoices: false, room: true };
   const savedSettings = LS.get('meselo:settings', {});
   if ((savedSettings.v || 1) < 2) {
     // az első változat „automatikus” böngészőhangja helyett a beépített Imre hang az alapértelmezett
@@ -1938,7 +1971,7 @@ window.MESELO_SITE = true;
   const synth = (() => { try { return window.speechSynthesis || null; } catch (e) { return null; } })();
   const canSpeak = !!(synth && typeof window.SpeechSynthesisUtterance === 'function');
 
-  const PAUSE = { sent: 160, line: 420, head: 950, sep: 1400, para: { short: 300, mid: 650, long: 1100 } };
+  const PAUSE = { sent: 380, line: 450, head: 1000, sep: 1500, para: { short: 450, mid: 800, long: 1200 } };
   const pauseMs = (kind) => Math.round((kind === 'para' ? (PAUSE.para[S.set.pause] || 650) : (PAUSE[kind] || 200)) / clamp(S.set.rate, 0.5, 2));
 
   // 16 bites, egycsatornás WAV a mondat hangjából és a mögé tett csendből
@@ -1956,6 +1989,62 @@ window.MESELO_SITE = true;
       v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true);
     }
     return new Blob([buf], { type: 'audio/wav' });
+  }
+
+  // Szobahang: egy kis szoba halk lecsengése a hang mögött. A száraz, „stúdióban lebegő”
+  // gépi hang így természetesebb, a vocoder fémes mellékzöngéit is elfedi kicsit.
+  const ROOM = { rt60: 0.38, tail: 0.42, wet: 0.2, dry: 0.9 };
+  let roomIR = null;
+  function makeRoomIR(sr) {
+    const len = Math.round(sr * ROOM.tail);
+    const ir = new Float32Array(len);
+    let seed = 20261106;
+    const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return (seed / 4294967296) * 2 - 1; };
+    const pre = Math.round(sr * 0.008);
+    [[0.011, 0.55], [0.017, -0.42], [0.023, 0.33], [0.031, -0.25], [0.043, 0.18]].forEach(([t, g]) => {
+      const i = pre + Math.round(t * sr);
+      if (i < len) ir[i] += g;
+    });
+    let lp = 0;
+    for (let i = pre; i < len; i++) {
+      const t = (i - pre) / sr;
+      const k = 0.35 + 0.55 * Math.min(1, t / 0.3); // a magasak gyorsabban halnak el
+      lp = lp * k + rnd() * (1 - k);
+      ir[i] += lp * Math.exp((-6.91 * t) / ROOM.rt60) * 0.9;
+    }
+    let e = 0;
+    for (let i = 0; i < len; i++) e += ir[i] * ir[i];
+    const g = 1 / Math.sqrt(e || 1);
+    for (let i = 0; i < len; i++) ir[i] *= g;
+    return ir;
+  }
+  async function withRoom(item) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return item;
+    try {
+      const sr = item.sampleRate;
+      if (!roomIR || roomIR.sr !== sr) roomIR = { sr, data: makeRoomIR(sr) };
+      const tail = Math.round(sr * ROOM.tail);
+      const ctx = new OAC(1, item.pcm.length + tail, sr);
+      const src = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, item.pcm.length, sr);
+      buf.getChannelData(0).set(item.pcm);
+      src.buffer = buf;
+      const conv = ctx.createConvolver();
+      conv.normalize = false;
+      const irb = ctx.createBuffer(1, roomIR.data.length, sr);
+      irb.getChannelData(0).set(roomIR.data);
+      conv.buffer = irb;
+      const wet = ctx.createGain();
+      wet.gain.value = ROOM.wet;
+      const dry = ctx.createGain();
+      dry.gain.value = ROOM.dry;
+      src.connect(dry).connect(ctx.destination);
+      src.connect(conv).connect(wet).connect(ctx.destination);
+      src.start();
+      const out = await ctx.startRendering();
+      return Object.assign({}, item, { pcm: out.getChannelData(0), tail: ROOM.tail });
+    } catch (e) { return item; }
   }
 
   // ── Beépített neurális hang (Imre): a böngészőben fut, egy Web Workerben ──
@@ -2047,15 +2136,16 @@ window.MESELO_SITE = true;
       });
       return this.readyPromise;
     },
+    key(text) { return `${S.set.rate}|${S.set.room ? 1 : 0}|${text}`; },
     get(text) {
-      const key = `${S.set.rate}|${text}`;
+      const key = this.key(text);
       let p = this.cache.get(key);
       if (p) { this.cache.delete(key); this.cache.set(key, p); return p; }
       p = new Promise((resolve, reject) => {
         const id = this.nextId++;
         this.jobs.set(id, { resolve, reject, key });
         this.worker.postMessage({ type: 'synth', id, text, lengthScale: 1 / clamp(S.set.rate, 0.5, 2) });
-      });
+      }).then((item) => (S.set.room ? withRoom(item) : item));
       p.catch(() => { if (this.cache.get(key) === p) this.cache.delete(key); });
       this.cache.set(key, p);
       while (this.cache.size > 16) this.cache.delete(this.cache.keys().next().value);
@@ -2063,7 +2153,7 @@ window.MESELO_SITE = true;
     },
     flush(keepTexts) {
       if (!this.worker) return;
-      const keepKeys = new Set((keepTexts || []).map((t) => `${S.set.rate}|${t}`));
+      const keepKeys = new Set((keepTexts || []).map((t) => this.key(t)));
       const keepIds = [];
       for (const [id, j] of this.jobs) {
         if (keepKeys.has(j.key)) { keepIds.push(id); continue; }
@@ -2656,7 +2746,7 @@ window.MESELO_SITE = true;
     S.errors = 0;
     setPlayUi();
     if (!S.playing) return;
-    Neural.play(item, pauseMs(sg.pause), () => {
+    Neural.play(item, Math.max(0, pauseMs(sg.pause) - (item.tail || 0) * 1000), () => {
       if (my !== S.token) return;
       learnFrom(sg.text.length, item.sec * S.set.rate);
       finished(sg, my, 0);
@@ -2838,6 +2928,7 @@ window.MESELO_SITE = true;
     hint.classList.remove('warn');
     chip.classList.remove('warn');
     $('#pitchField').hidden = useNeural();
+    $('#roomFxRow').hidden = !useNeural();
     showSpoken();
     setPlayUi();
     if (S.set.voice === NEURAL_ID && Neural.available) {
@@ -2941,6 +3032,7 @@ window.MESELO_SITE = true;
     document.documentElement.style.setProperty('--read-scale', String(S.set.font));
     $('#fontOut').textContent = `${Math.round(S.set.font * 100)}%`;
     $('#showSpoken').checked = !!S.set.showSpoken;
+    $('#roomFx').checked = !!S.set.room;
     $('#allVoices').checked = !!S.set.allVoices;
     $('#dictArea').value = S.set.dict;
     renderDictCount();
@@ -3217,6 +3309,12 @@ window.MESELO_SITE = true;
       if (was) play();
     });
     $('#allVoices').addEventListener('change', (e) => { S.set.allVoices = e.target.checked; saveSettings(); renderVoices(); });
+    $('#roomFx').addEventListener('change', (e) => {
+      S.set.room = e.target.checked;
+      saveSettings();
+      Neural.clearCache();
+      if (S.playing && useNeural()) jumpTo(S.seg);
+    });
     $('#rateRange').addEventListener('input', (e) => { $('#rateOut').textContent = fmtRate(Number(e.target.value)); });
     $('#rateRange').addEventListener('change', (e) => setRate(Number(e.target.value), true));
     $('#pitchRange').addEventListener('input', (e) => { $('#pitchOut').textContent = huNum(Number(e.target.value), 2, 2); });

@@ -200,17 +200,28 @@
     return false;
   }
 
-  function cleanInline(t, fixHu) {
-    let s = t.replace(/\s+/g, ' ')
+  function cleanInline(t) {
+    const s = t.replace(/\s+/g, ' ')
       .replace(new RegExp(` ?${MARK_BR} ?`, 'g'), '\n')
       .replace(/\n{2,}/g, '\n')
       .replace(/^\n+|\n+$/g, '')
       .trim();
-    if (fixHu) s = s.replace(/õ/g, 'ő').replace(/Õ/g, 'Ő').replace(/û/g, 'ű').replace(/Û/g, 'Ű');
     return s.normalize('NFC');
   }
 
-  function extractBlocks(doc, fixHu) {
+  // Magyar-e a szöveg? A metaadat gyakran hiányzik vagy hibás (sok magyar e-könyvön „en” áll)
+  const HU_WORDS = new Set(['és', 'hogy', 'nem', 'egy', 'az', 'a', 'is', 'de', 'meg', 'csak', 'már', 'még', 'volt',
+    'van', 'mint', 'ha', 'ez', 'azt', 'mert', 'el', 'ki', 'be', 'fel', 'le', 'sem', 'vagy', 'pedig', 'aki', 'ami']);
+  function looksHungarian(text) {
+    const words = String(text).toLowerCase().match(/\p{L}+/gu) || [];
+    if (words.length < 40) return /[őűõû]/i.test(text);
+    let hits = 0;
+    for (const w of words) if (HU_WORDS.has(w)) hits++;
+    return hits / words.length > 0.08;
+  }
+  const fixLetters = (t) => (root.HuText && root.HuText.fixLetters ? root.HuText.fixLetters(t) : String(t).normalize('NFC'));
+
+  function extractBlocks(doc) {
     const body = doc.body || doc.getElementsByTagName('body')[0] || doc.documentElement;
     const blocks = [];
     const ids = new Map();
@@ -231,7 +242,7 @@
     }
 
     function emit(type, acc, tag) {
-      const text = cleanInline(acc.t, fixHu);
+      const text = cleanInline(acc.t);
       if (!text) { pending.push(...acc.ids); return; }
       const idx = blocks.length;
       for (const id of pending.concat(acc.ids)) if (!ids.has(id)) ids.set(id, idx);
@@ -368,7 +379,6 @@
     const author = els(opf, 'creator').slice(0, 3).map((e) => clean(e.textContent)).filter(Boolean).join(', ');
     const lang = meta('language');
     const identifier = meta('identifier');
-    const fixHu = !lang || /^hu/i.test(lang);
 
     const manifest = new Map();
     for (const it of els(opf, 'item')) {
@@ -407,7 +417,7 @@
       const bytes = await zip.bytes(item.path);
       if (!bytes) continue;
       const doc = parseXHTML(decodeText(bytes));
-      const { blocks, ids } = extractBlocks(doc, fixHu);
+      const { blocks, ids } = extractBlocks(doc);
       if (!blocks.some((b) => b.type !== 'sep')) { waiting.push(item.path); continue; }
       if (!chapters.length) {
         const sample = blocks.map((b) => b.text).join(' ').slice(0, 4000);
@@ -422,6 +432,11 @@
     }
     waiting.forEach((pth) => pathToChapter.set(pth, Math.max(0, chapters.length - 1)));
     if (!chapters.length) throw new EpubError(encXml || drmFiles ? 'drm' : 'notext');
+
+    // hibás ékezetek (õ, û, o¨, szétbontott betűk) javítása, ha a könyv magyar
+    const sample = chapters.slice(0, 4).map((c) => c.blocks.map((b) => b.text).join(' ')).join(' ').slice(0, 30000);
+    const fixHu = /^hu/i.test(lang) || (!/^(?:de|fr|es|it|pt|ro|sk|cs|pl|hr|sl|tr|vi|fi|et)\b/i.test(lang) && looksHungarian(sample));
+    if (fixHu) for (const c of chapters) for (const b of c.blocks) b.text = fixLetters(b.text);
 
     let raw = [];
     try {
@@ -458,9 +473,12 @@
     }
 
     const chars = chapters.reduce((n, c) => n + c.blocks.reduce((m, b) => m + (b.type === 'sep' ? 0 : b.text.length), 0), 0);
+    const fx = (t) => (fixHu ? fixLetters(t) : t);
+    toc.forEach((t) => { t.title = fx(t.title); });
+    chapters.forEach((c) => { c.title = fx(c.title); });
     return {
       id: 'b' + hash([identifier, title, author, chars].join('|')),
-      title, author, lang,
+      title: fx(title), author: fx(author), lang,
       chapters: chapters.map((c) => ({ title: c.title, blocks: c.blocks })),
       toc: toc.length ? toc : chapters.map((c, i) => ({ title: c.title, ch: i, block: 0, level: 0 })),
       cover,
